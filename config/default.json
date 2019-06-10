@@ -1,0 +1,25 @@
+{
+  "session": {
+    "secret": "HustleHardCode",
+    "key": "sid",
+    "rolling": false,
+    "resave": false,
+    "saveUninitialized": false,
+    "cookie": {
+      "path": "/",
+      "httpOnly": true,
+      "maxAge": 86400000
+    }
+  },
+  "database": {
+    "uri": "mongodb://127.0.0.1/schedule",
+    "options": {
+      "keepAlive": 1
+    },
+    "useNewUrlParser": true,
+    "debug": false
+  },
+  "server": {
+    "port": 4000
+  }
+}
