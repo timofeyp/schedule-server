@@ -1,9 +1,11 @@
 const express = require("express");
 const passport = require('passport');
+const LdapStrategy = require('passport-ldapauth');
 const config = require("config");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const session = require('express-session');
+const bodyParser   = require('body-parser');
 const MongoStore = require('connect-mongo')(session);
 const HttpStatus = require("http-status-codes");
 const User = require('./db/models/user');
@@ -21,6 +23,8 @@ errorHandlersInitialization();
 module.exports = app;
 
 function expressInitialization () {
+	app.use(bodyParser.json());
+	app.use(bodyParser.urlencoded({extended: false}));
 	app.use(logger("dev"));
 	app.use(express.json());
 	app.use(express.urlencoded({extended: false}));
@@ -34,7 +38,7 @@ function expressInitialization () {
 		rolling:           config.get('session.rolling'),
 		store:             new MongoStore({
 			mongooseConnection: mongoose.connection,
-			stringify:          false
+			stringify:          false,
 		})
 	}));
 }
@@ -44,6 +48,13 @@ function passportInitialization () {
 	app.use(passport.session());
 
 	// passport config
+	passport.use(new LdapStrategy(config.LDAP, function(user, done) {
+	if(user.cn === 'asp-pts') {
+		return done(null, user);
+	} else {
+		return done(null, null);
+	}
+	}));
 	passport.use(new LocalStrategy(User.authenticate()));
 	passport.serializeUser(User.serializeUser());
 	passport.deserializeUser(User.deserializeUser());

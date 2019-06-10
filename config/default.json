@@ -12,14 +12,26 @@
     }
   },
   "database": {
-    "uri": "mongodb://127.0.0.1/schedule",
+    "uri": "mongodb://127.0.0.1:27017/schedule",
     "options": {
-      "keepAlive": 1
+      "keepAlive": 1,
+      "useNewUrlParser": true
     },
-    "useNewUrlParser": true,
     "debug": false
   },
   "server": {
     "port": 4000
+  },
+  "LDAP": {
+    "usernameField": "username",
+    "passwordField": "password",
+    "handleErrorsAsFailures": true,
+    "server":{
+      "url": "ldap://10.3.6.26:389",
+      "bindDN": "CN=сuadmin,CN=Users,DC=ln,DC=rosenergoatom,DC=ru",
+      "bindCredentials": "1QAZse4",
+      "searchBase": "OU=laes.ru,DC=ln,DC=rosenergoatom,DC=ru",
+      "searchFilter": "(name={{username}})"
+    }
   }
 }

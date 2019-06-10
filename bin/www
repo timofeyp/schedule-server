@@ -5,7 +5,7 @@
  */
 
 const app = require("../app");
-const debug = require("debug")("aba-ava-server:server");
+const debug = require("debug")("schedule:server");
 const http = require("http");
 const config = require("config");
 

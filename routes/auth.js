@@ -1,4 +1,4 @@
-const {error} = require("utils");
+const {error} = require("../utils");
 const express = require("express");
 const passport = require("passport");
 const router = express.Router({});
@@ -21,6 +21,10 @@ router.post("/register", (req, res) => {
 });
 
 router.post("/login", passport.authenticate("local"), (req, res) => res.redirect("/"));
+router.post("/login-ldap", passport.authenticate("ldapauth", {session: false}), (req, res) => {
+	const user = req.user;
+	res.json(user)
+});
 
 router.get("/logout", (req, res) => {
 	req.logout();
