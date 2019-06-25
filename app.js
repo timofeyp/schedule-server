@@ -1,81 +1,80 @@
-const express = require("express");
+const express = require('express');
 const passport = require('passport');
 const LdapStrategy = require('passport-ldapauth');
-const config = require("config");
-const cookieParser = require("cookie-parser");
-const logger = require("morgan");
+const config = require('config');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 const session = require('express-session');
-const bodyParser   = require('body-parser');
+const bodyParser = require('body-parser');
 const MongoStore = require('connect-mongo')(session);
-const HttpStatus = require("http-status-codes");
+const HttpStatus = require('http-status-codes');
 const User = require('./db/models/user');
 const LocalStrategy = require('passport-local').Strategy;
-
 const mongoose = require('./utils/mongoose');
-
 const app = express();
+const eventsInitialization = require('./managers/events');
 
 expressInitialization();
 passportInitialization();
 routesInitialization();
 errorHandlersInitialization();
+eventsInitialization();
 
 module.exports = app;
 
-function expressInitialization () {
-	app.use(bodyParser.json());
-	app.use(bodyParser.urlencoded({extended: false}));
-	app.use(logger("dev"));
-	app.use(express.json());
-	app.use(express.urlencoded({extended: false}));
-	app.use(cookieParser());
-	app.use(session({
-		secret:            config.get('session.secret'),
-		key:               config.get('session.key'),
-		resave:            config.get('session.resave'),
-		saveUninitialized: config.get('session.saveUninitialized'),
-		cookie:            config.get('session.cookie'),
-		rolling:           config.get('session.rolling'),
-		store:             new MongoStore({
-			mongooseConnection: mongoose.connection,
-			stringify:          false,
-		})
-	}));
+function expressInitialization() {
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(logger('dev'));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+  app.use(cookieParser());
+  app.use(session({
+    secret: config.get('session.secret'),
+    key: config.get('session.key'),
+    resave: config.get('session.resave'),
+    saveUninitialized: config.get('session.saveUninitialized'),
+    cookie: config.get('session.cookie'),
+    rolling: config.get('session.rolling'),
+    store: new MongoStore({
+      mongooseConnection: mongoose.connection,
+      stringify: false,
+    }),
+  }));
 }
 
-function passportInitialization () {
-	app.use(passport.initialize());
-	app.use(passport.session());
+function passportInitialization() {
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-	// passport config
-	passport.use(new LdapStrategy(config.LDAP, function(user, done) {
-	if(user.cn === 'asp-pts') {
-		return done(null, user);
-	} else {
-		return done(null, null);
-	}
-	}));
-	passport.use(new LocalStrategy(User.authenticate()));
-	passport.serializeUser(User.serializeUser());
-	passport.deserializeUser(User.deserializeUser());
+  // passport config
+  passport.use(new LdapStrategy(config.LDAP, ((user, done) => {
+    if (user.cn === 'asp-pts') {
+      return done(null, user);
+    }
+    return done(null, null);
+  })));
+  passport.use(new LocalStrategy(User.authenticate()));
+  passport.serializeUser(User.serializeUser());
+  passport.deserializeUser(User.deserializeUser());
 }
 
-function routesInitialization () {
-	// Add endpoints to app
-	require('./routes')(app);
+function routesInitialization() {
+  // Add endpoints to app
+  require('./routes')(app);
 }
 
-function errorHandlersInitialization () {
-	// catch 404 and forward to error handler
-	app.use(() => HttpStatus.NOT_FOUND);
+function errorHandlersInitialization() {
+  // catch 404 and forward to error handler
+  app.use(() => HttpStatus.NOT_FOUND);
 
-	// error handler
-	app.use((err, req, res, next) => {
-		// set locals, only providing error in development
-		res.locals.message = err.message;
-		res.locals.error = req.app.get("env") === "development" ? err : {};
+  // error handler
+  app.use((err, req, res, next) => {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-		// render the error page
-		return res.sendStatus(err.status || HttpStatus.INTERNAL_SERVER_ERROR);
-	});
+    // render the error page
+    return res.sendStatus(err.status || HttpStatus.INTERNAL_SERVER_ERROR);
+  });
 }
