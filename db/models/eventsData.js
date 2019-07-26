@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const EventsData = new Schema({
   data: Object,
-  event_id: Array,
+  eventID: Number,
 });
 
 module.exports = mongoose.model('eventsData', EventsData);

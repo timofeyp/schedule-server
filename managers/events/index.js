@@ -28,7 +28,7 @@ const eventsWorker = async () => {
     cookies.forEach((el) => {
       j.setCookie(`${el.name}=${el.value}`, eventsUrl);
     });
-    // todayEventsRequest();
+    todayEventsRequest();
     weekEventsRequest();
   } catch (e) {
     console.log(e);
@@ -140,7 +140,8 @@ const eventsDataManager = {
       eventsDataManager.eventsObj.events[day] = true;
       for (const event of events) {
         const data = await requestData(eventUrl(event.event_id), query);
-        await EventsData.findOneAndUpdate({ event_id: event.event_id }, { event_id: event.event_id, data }, { upsert: true });
+        const eventID = event.event_id;
+        await EventsData.findOneAndUpdate({ eventID }, { eventID, data }, { upsert: true });
       }
     }
     if (eventsDataManager.eventsObj.timeoutTrigger === true) {
