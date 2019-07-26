@@ -3,7 +3,13 @@ const getCurrentWeekEvents = async (req, res) => {
   const events = await Events.aggregate([
     {
       $match: {
-        date: '24.07.2019',
+        $or: [
+          {
+            date: '24.07.2019',
+          }, {
+            date: '25.07.2019',
+          },
+        ],
       },
     }, {
       $unwind: {
@@ -26,6 +32,19 @@ const getCurrentWeekEvents = async (req, res) => {
         event: '$events',
         date: 1,
       },
+    }, {
+      $group: {
+        _id: {
+          date: '$date',
+        },
+        data: {
+          $push: {
+            $mergeObjects: [
+              '$data', '$event',
+            ],
+          },
+        },
+      },
     },
   ]);
   res.header('Access-Control-Allow-Origin', '*');
@@ -39,3 +58,4 @@ const getCurrentWeekEvents = async (req, res) => {
 module.exports = {
   getCurrentWeekEvents,
 };
+
