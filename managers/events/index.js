@@ -5,8 +5,8 @@ const queryString = require('query-string');
 const request = require('request');
 const j = request.jar();
 const { Events, EventsData } = require('../../db');
-const moment = require('moment');
-const currentDay = i => moment().add(i, 'day').format('DD.MM.YYYY');
+const Moment = require('moment');
+const currentDay = i => Moment().add(i, 'day');
 const eventsUrl = 'http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtroot/pcd!3aportal_content!2frea!2fca!2fservices_ca!2ffRooms_booking!2frooms_request!2frequests!2ffRoom_requests!2fpScheduler!2fru.rea.i_day_rooms_requests';
 const eventUrl = eventId => `http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtroot/rea.ru~request~rooms~portal.RoomRequest?event_id=${eventId}`;
 
@@ -44,10 +44,10 @@ const requestedDays = {};
 const todayEventsRequest = () => setInterval(async () => {
   const eventsQuery = queryString.stringify({
     action: 'refresh',
-    date_refresh: currentDay(0),
+    date_refresh: currentDay(0).format('DD.MM.YYYY'),
   });
   const eventsResp = await requestData(eventsUrl, eventsQuery);
-  createEvents(eventsResp, currentDay(0));
+  createEvents(eventsResp, currentDay(0).format('YYYY-MM-DD'));
 }, 10000);
 
 const weekEventsRequest = () => setInterval(() => {
@@ -56,7 +56,7 @@ const weekEventsRequest = () => setInterval(() => {
 
 function* asyncGenerator() {
   let i = 1;
-  while (i < 7) {
+  while (i < 21) {
     yield i++;
   }
 }
@@ -66,10 +66,10 @@ const requestWeek = async () => {
   for (const i of asyncGenerator()) {
     const eventsQuery = queryString.stringify({
       action: 'refresh',
-      date_refresh: currentDay(i),
+      date_refresh: currentDay(i).format('DD.MM.YYYY'),
     });
     const eventsResp = await requestData(eventsUrl, eventsQuery);
-    await createEvents(eventsResp, currentDay(i));
+    await createEvents(eventsResp, currentDay(i).format('YYYY-MM-DD'));
   }
   delete requestedDays.week;
 };

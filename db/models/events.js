@@ -2,7 +2,7 @@ const mongoose = require('../../utils/mongoose');
 const { Schema } = mongoose;
 
 const Events = new Schema({
-  date: String,
+  date: Date,
   events: Array,
 });
 

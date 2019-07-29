@@ -13,6 +13,8 @@ const LocalStrategy = require('passport-local').Strategy;
 const mongoose = require('./utils/mongoose');
 const app = express();
 const eventsInitialization = require('./managers/events');
+const cors = require('cors');
+const routes = require('./routes');
 
 expressInitialization();
 passportInitialization();
@@ -41,6 +43,7 @@ function expressInitialization() {
       stringify: false,
     }),
   }));
+  app.use(cors());
 }
 
 function passportInitialization() {
@@ -61,7 +64,7 @@ function passportInitialization() {
 
 function routesInitialization() {
   // Add endpoints to app
-  require('./routes')(app);
+  routes(app);
 }
 
 function errorHandlersInitialization() {
@@ -69,7 +72,7 @@ function errorHandlersInitialization() {
   app.use(() => HttpStatus.NOT_FOUND);
 
   // error handler
-  app.use((err, req, res, next) => {
+  app.use((err, req, res) => {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};

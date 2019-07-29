@@ -1,15 +1,14 @@
 const { Events } = require('../../db');
+const Moment = require('moment');
+
 const getCurrentWeekEvents = async (req, res) => {
   const events = await Events.aggregate([
     {
       $match: {
-        $or: [
-          {
-            date: '24.07.2019',
-          }, {
-            date: '25.07.2019',
-          },
-        ],
+        date: {
+          $gte: Moment().hour(0).minute(0).toDate(),
+          $lte: Moment().hour(23).minute(59).add(6, 'day').toDate(),
+        },
       },
     }, {
       $unwind: {
@@ -46,13 +45,14 @@ const getCurrentWeekEvents = async (req, res) => {
         },
       },
     },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
   ]);
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept',
-  );
-  return res.json(events);
+  const sortedEvents = events.sort((a, b) => new Moment(a._id.date) - new Moment(b._id.date));
+  return res.json(sortedEvents);
 };
 
 module.exports = {
