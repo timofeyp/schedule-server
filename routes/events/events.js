@@ -1,4 +1,4 @@
-const { Events } = require('../../db');
+const { Events, EventsData } = require('../../db');
 const Moment = require('moment');
 
 const getCurrentWeekEvents = async (req, res) => {
@@ -51,11 +51,16 @@ const getCurrentWeekEvents = async (req, res) => {
       },
     },
   ]);
-  const sortedEvents = events.sort((a, b) => new Moment(a._id.date) - new Moment(b._id.date));
-  return res.json(sortedEvents);
+  return res.json(events);
+};
+
+const getEventData = async (req, res) => {
+  const event = await EventsData.findOne({ eventID: req.params.id });
+  return res.json(event);
 };
 
 module.exports = {
   getCurrentWeekEvents,
+  getEventData,
 };
 

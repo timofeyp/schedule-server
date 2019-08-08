@@ -1,3 +1,4 @@
+
 const {
   Builder, By, until,
 } = require('selenium-webdriver');
@@ -52,7 +53,7 @@ const todayEventsRequest = () => setInterval(async () => {
 
 const weekEventsRequest = () => setInterval(() => {
   requestedDays.week ? null : requestWeek();
-}, 600000);
+}, 10000);
 
 function* asyncGenerator() {
   let i = 1;
@@ -75,6 +76,7 @@ const requestWeek = async () => {
 };
 
 const requestData = (url, query) => new Promise((res, rej) => {
+  console.log(url, query)
   request.post(
     {
       url,
