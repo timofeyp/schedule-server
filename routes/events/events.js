@@ -9,6 +9,11 @@ const unixWeek = {
 };
 
 const getCurrentWeekEvents = async (req, res) => {
+  const filter = req.body.filter ? {
+    VCPartsIDs: {
+      $in: req.body.filter,
+    },
+  } : {};
   const events = await EventsData.aggregate([
     {
       $match: {
@@ -59,6 +64,16 @@ const getCurrentWeekEvents = async (req, res) => {
             name: '$room.location_name',
           },
         },
+        VCPartsIDs: {
+          $first: {
+            $map:
+                {
+                  input: '$selectedVCParts',
+                  as: 'item',
+                  in: { $convert: { input: '$$item', to: 'int' } },
+                },
+          },
+        },
         eventName: {
           $first: '$eventName',
         },
@@ -91,7 +106,7 @@ const getCurrentWeekEvents = async (req, res) => {
         timeStart: {
           $first: {
             $dateToString: {
-              format: '%H:%M:%S',
+              format: '%H:%M',
               date: {
                 $dateFromParts: {
                   year: 0,
@@ -105,7 +120,7 @@ const getCurrentWeekEvents = async (req, res) => {
         timeEnd: {
           $first: {
             $dateToString: {
-              format: '%H:%M:%S',
+              format: '%H:%M',
               date: {
                 $dateFromParts: {
                   year: 0,
@@ -148,6 +163,8 @@ const getCurrentWeekEvents = async (req, res) => {
         },
       },
     }, {
+      $match: filter,
+    }, {
       $unwind: {
         path: '$room',
         preserveNullAndEmptyArrays: true,
@@ -177,6 +194,7 @@ const getEventData = async (req, res) => {
   const event = await EventsData.aggregate([
     {
       $match: {
+        // eslint-disable-next-line radix
         eventID: parseInt(req.params.id),
       },
     }, {
@@ -266,7 +284,7 @@ const getEventData = async (req, res) => {
         timeStart: {
           $first: {
             $dateToString: {
-              format: '%H:%M:%S',
+              format: '%H:%M',
               date: {
                 $dateFromParts: {
                   year: 0,
@@ -280,7 +298,7 @@ const getEventData = async (req, res) => {
         timeEnd: {
           $first: {
             $dateToString: {
-              format: '%H:%M:%S',
+              format: '%H:%M',
               date: {
                 $dateFromParts: {
                   year: 0,
