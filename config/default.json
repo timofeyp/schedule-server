@@ -8,7 +8,7 @@
     "cookie": {
       "path": "/",
       "httpOnly": true,
-      "maxAge": 86400000
+      "maxAge": 3086400000
     }
   },
   "database": {

@@ -8,13 +8,24 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const MongoStore = require('connect-mongo')(session);
 const HttpStatus = require('http-status-codes');
-const User = require('./db/models/user');
-const LocalStrategy = require('passport-local').Strategy;
 const mongoose = require('./utils/mongoose');
 const app = express();
 const eventsInitialization = require('./managers/events');
-const cors = require('cors');
 const routes = require('./routes');
+
+const ldapCfg = {
+  usernameField: 'username',
+  passwordField: 'password',
+  handleErrorsAsFailures: true,
+  missingCredentialsStatus: HttpStatus.INTERNAL_SERVER_ERROR,
+  server: {
+    url: 'ldap://10.3.6.26:389',
+    bindDN: 'CN=сuadmin,CN=Users,DC=ln,DC=rosenergoatom,DC=ru',
+    bindCredentials: '1QAZse4',
+    searchBase: 'OU=laes.ru,DC=ln,DC=rosenergoatom,DC=ru',
+    searchFilter: '(name={{username}})',
+  },
+};
 
 expressInitialization();
 passportInitialization();
@@ -43,7 +54,6 @@ function expressInitialization() {
       stringify: false,
     }),
   }));
-  app.use(cors());
 }
 
 function passportInitialization() {
@@ -51,15 +61,20 @@ function passportInitialization() {
   app.use(passport.session());
 
   // passport config
-  passport.use(new LdapStrategy(config.LDAP, ((user, done) => {
+  passport.use(new LdapStrategy(ldapCfg, ((user, done) => {
     if (user.cn === 'asp-pts') {
       return done(null, user);
     }
     return done(null, null);
   })));
-  passport.use(new LocalStrategy(User.authenticate()));
-  passport.serializeUser(User.serializeUser());
-  passport.deserializeUser(User.deserializeUser());
+  // passport.use(new LocalStrategy(User.authenticate()));
+  passport.serializeUser((user, done) => {
+    done(null, user.cn);
+  });
+  passport.deserializeUser((id, done) => {
+    done(null, id);
+    return null;
+  });
 }
 
 function routesInitialization() {

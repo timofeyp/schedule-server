@@ -5,6 +5,7 @@ const router = express.Router({});
 
 const HttpStatus = require('http-status-codes');
 const User = require('../db/models/user');
+const isAuth = require('./middlewares/check-authenticated');
 
 
 router.post('/register', (req, res) => {
@@ -21,14 +22,17 @@ router.post('/register', (req, res) => {
 });
 
 router.post('/login', passport.authenticate('local'), (req, res) => res.redirect('/'));
-router.post('/login-ldap', passport.authenticate('ldapauth', { session: false }), (req, res) => {
+router.post('/login-ldap', passport.authenticate('ldapauth', { session: true }), (req, res) => {
   const { user } = req;
   res.json(user);
 });
 
+router.get('/session', isAuth, (req, res) => res.status(HttpStatus.OK));
+
 router.get('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
+  req.session.destroy(() => {
+    res.redirect('/');
+  });
 });
 
 module.exports = router;
