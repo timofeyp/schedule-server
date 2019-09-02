@@ -24,7 +24,6 @@ EventsData.virtual('confirm', {
   localField: 'eventID',
   foreignField: 'eventID',
   justOne: false,
-  options: { sort: { name: -1 }, limit: 5 },
 });
 
 module.exports = mongoose.model('eventsData', EventsData);
