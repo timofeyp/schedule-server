@@ -29,8 +29,8 @@ const eventsWorker = async () => {
     cookies.forEach((el) => {
       j.setCookie(`${el.name}=${el.value}`, eventsUrl);
     });
-    todayEventsRequest();
-    weekEventsRequest();
+    // todayEventsRequest();
+    // weekEventsRequest();
   } catch (e) {
     console.log(e);
   } finally {
