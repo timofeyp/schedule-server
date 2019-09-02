@@ -54,65 +54,47 @@ const getSelectedVcParts = async (req, res) => {
   const vcParts = await EventsData.aggregate([
     {
       $match: {
-        'data.date_start': unixWeek,
+        dateStart: week,
+      },
+    },
+    {
+      $project: {
+        VCParts: 1,
       },
     }, {
-      $project: {
-        vc_parts: '$data.vc_parts',
-        selected_vc_parts: '$data.selected_vc_parts',
+      $unwind: {
+        path: '$VCParts',
+        preserveNullAndEmptyArrays: false,
+      },
+    }, {
+      $unwind: {
+        path: '$VCParts.VCParts',
+      },
+    }, {
+      $group: {
+        _id: '$VCParts.groupName',
+        group_name: {
+          $first: '$VCParts.groupName',
+        },
+        vc_parts: {
+          $addToSet: {
+            value: '$VCParts.VCParts.id',
+            label: '$VCParts.VCParts.name',
+          },
+        },
       },
     }, {
       $unwind: {
         path: '$vc_parts',
       },
     }, {
-      $group: {
-        _id: '$vc_parts.group_id',
-        group_name: {
-          $first: '$vc_parts.group_name',
-        },
-        s: {
-          $addToSet: {
-            $filter: {
-              input: '$vc_parts.vc_parts',
-              as: 'vc_part',
-              cond: {
-                $in: [
-                  '$$vc_part.id', {
-                    $map: {
-                      input: '$selected_vc_parts',
-                      as: 'item',
-                      in: {
-                        $convert: {
-                          input: '$$item',
-                          to: 'int',
-                        },
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        },
+      $project: {
+        value: '$vc_parts.value',
+        label: '$vc_parts.label',
       },
     }, {
-      $unwind: {
-        path: '$s',
-      },
-    }, {
-      $unwind: {
-        path: '$s',
-      },
-    }, {
-      $group: {
-        _id: '$_id',
-        group_name: {
-          $first: '$group_name',
-        },
-        vc_parts: {
-          $addToSet: { value: '$s.id', label: '$s.name' },
-        },
+      $sort: {
+        label: 1,
       },
     },
   ]);
