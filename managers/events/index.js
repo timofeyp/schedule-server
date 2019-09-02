@@ -29,8 +29,8 @@ const eventsWorker = async () => {
     cookies.forEach((el) => {
       j.setCookie(`${el.name}=${el.value}`, eventsUrl);
     });
-    // todayEventsRequest();
-    // weekEventsRequest();
+    todayEventsRequest();
+    weekEventsRequest();
   } catch (e) {
     console.log(e);
   } finally {
@@ -76,7 +76,7 @@ const requestWeek = async () => {
 };
 
 const requestData = (url, query) => new Promise((res, rej) => {
-  console.log(url, query)
+  console.log(url, query);
   request.post(
     {
       url,
@@ -143,7 +143,39 @@ const eventsDataManager = {
       for (const event of events) {
         const data = await requestData(eventUrl(event.event_id), query);
         const eventID = event.event_id;
-        await EventsData.findOneAndUpdate({ eventID }, { eventID, data }, { upsert: true });
+        const room = data.rooms.filter(el => el.id === data.selected_room);
+        const dateStart = Moment(data.date_start).toDate();
+        // eslint-disable-next-line radix
+        const VCPartsIDs = data.selected_vc_parts.map(el => parseInt(el));
+        const yearMonthDay = Moment(dateStart).format('YYYY-MM-DD');
+        const timeStart = `${data.HStart}:${data.MStart === 0 ? '00' : data.MStart}`;
+        const timeEnd = `${data.HEnd}:${data.MEnd === 0 ? '00' : data.MEnd}`;
+        const VCPartsArr = data.vc_parts.reduce((arr, el) => {
+          const groupName = el.group_name;
+          const VCParts = el.vc_parts.filter(i => VCPartsIDs.includes(i.id));
+          if (VCParts.length) {
+            arr.push({ groupName, VCParts });
+          }
+          return arr;
+        }, []);
+        const item = {
+          eventID,
+          room: room[0],
+          eventName: data.event_name,
+          dateStart,
+          VCPartsIDs,
+          responsibleDept: data.responsible_dept,
+          responsibleDisplayname: data.responsible_displayname,
+          ownerDisplayname: data.owner_displayname,
+          chairman: data.chairman_displayname,
+          presentation: data.presentation,
+          yearMonthDay,
+          timeStart,
+          timeEnd,
+          VCParts: VCPartsArr,
+          additional: data.reqaddpart,
+        };
+        await EventsData.findOneAndUpdate({ eventID }, item, { upsert: true });
       }
     }
     if (eventsDataManager.eventsObj.timeoutTrigger === true) {

@@ -62,7 +62,7 @@ function passportInitialization() {
 
   // passport config
   passport.use(new LdapStrategy(ldapCfg, ((user, done) => {
-    if (user.cn === 'asp-pts') {
+    if (user) {
       return done(null, user);
     }
     return done(null, null);

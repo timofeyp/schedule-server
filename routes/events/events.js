@@ -8,6 +8,11 @@ const unixWeek = {
   $lte: (Moment().hour(23).minute(59).second(59).add(6, 'day').unix() * 1000),
 };
 
+const week = {
+  $gte: Moment().hour(0).minute(0).second(0).millisecond(0).toDate(),
+  $lte: Moment().hour(23).minute(59).second(59).add(6, 'day').toDate(),
+};
+
 const getCurrentWeekEvents = async (req, res) => {
   const filter = req.body.filter ? {
     VCPartsIDs: {
@@ -17,163 +22,10 @@ const getCurrentWeekEvents = async (req, res) => {
   const events = await EventsData.aggregate([
     {
       $match: {
-        'data.date_start': unixWeek,
-      },
-    }, {
-      $project: {
-        eventID: 1,
-        eventName: '$data.event_name',
-        room: {
-          $filter: {
-            input: '$data.rooms',
-            as: 'room',
-            cond: {
-              $eq: [
-                '$$room.id', '$data.selected_room',
-              ],
-            },
-          },
-        },
-        VCParts: '$data.vc_parts',
-        selectedVCParts: '$data.selected_vc_parts',
-        dateStart: {
-          $toDate: '$data.date_start',
-        },
-        responsibleDept: '$data.responsible_dept',
-        responsibleDisplayname: '$data.responsible_displayname',
-        ownerDisplayname: '$data.owner_displayname',
-        chairman: '$data.chairman_displayname',
-        presentation: '$data.presentation',
-        additional: '$data.reqaddpart',
-        HStart: '$data.HStart',
-        HEnd: '$data.HEnd',
-        MStart: '$data.MStart',
-        MEnd: '$data.MEnd',
-      },
-    }, {
-      $unwind: {
-        path: '$VCParts',
-        preserveNullAndEmptyArrays: true,
-      },
-    }, {
-      $group: {
-        _id: '$eventID',
-        room: {
-          $first: {
-            id: '$room.id',
-            name: '$room.location_name',
-          },
-        },
-        VCPartsIDs: {
-          $first: {
-            $map:
-                {
-                  input: '$selectedVCParts',
-                  as: 'item',
-                  in: { $convert: { input: '$$item', to: 'int' } },
-                },
-          },
-        },
-        eventName: {
-          $first: '$eventName',
-        },
-        dateStart: {
-          $first: '$dateStart',
-        },
-        responsibleDept: {
-          $first: '$responsibleDept',
-        },
-        responsibleDisplayname: {
-          $first: '$responsibleDisplayname',
-        },
-        ownerDisplayname: {
-          $first: '$ownerDisplayname',
-        },
-        chairman: {
-          $first: '$chairman',
-        },
-        presentation: {
-          $first: '$presentation',
-        },
-        yearMonthDay: {
-          $first: {
-            $dateToString: {
-              format: '%Y-%m-%d',
-              date: '$dateStart',
-            },
-          },
-        },
-        timeStart: {
-          $first: {
-            $dateToString: {
-              format: '%H:%M',
-              date: {
-                $dateFromParts: {
-                  year: 0,
-                  hour: '$HStart',
-                  minute: '$MStart',
-                },
-              },
-            },
-          },
-        },
-        timeEnd: {
-          $first: {
-            $dateToString: {
-              format: '%H:%M',
-              date: {
-                $dateFromParts: {
-                  year: 0,
-                  hour: '$HEnd',
-                  minute: '$MEnd',
-                },
-              },
-            },
-          },
-        },
-        VCParts: {
-          $addToSet: {
-            groupName: '$VCParts.group_name',
-            VCParts: {
-              $filter: {
-                input: '$VCParts.vc_parts',
-                as: 'item',
-                cond: {
-                  $in: [
-                    '$$item.id', {
-                      $map: {
-                        input: '$selectedVCParts',
-                        as: 'item',
-                        in: {
-                          $convert: {
-                            input: '$$item',
-                            to: 'int',
-                          },
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        },
-        additional: {
-          $addToSet: '$additional',
-        },
+        dateStart: week,
       },
     }, {
       $match: filter,
-    }, {
-      $unwind: {
-        path: '$room',
-        preserveNullAndEmptyArrays: true,
-      },
-    }, {
-      $unwind: {
-        path: '$additional',
-        preserveNullAndEmptyArrays: true,
-      },
     }, {
       $group: {
         _id: '$yearMonthDay',
