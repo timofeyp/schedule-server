@@ -7,7 +7,7 @@ const LocalConfirmations = new Schema({
   date: Date,
 }, { toJSON: { virtuals: true } });
 
-LocalConfirmations.virtual('confirm', {
+LocalConfirmations.virtual('userData', {
   ref: 'user',
   localField: 'user',
   foreignField: 'user',

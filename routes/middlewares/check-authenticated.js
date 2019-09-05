@@ -1,8 +1,3 @@
-/**
- * @author iretd
- * @since 09.10.16
- */
-
 const HttpStatus = require('http-status-codes');
 
 /**

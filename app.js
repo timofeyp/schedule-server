@@ -8,10 +8,10 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const MongoStore = require('connect-mongo')(session);
 const HttpStatus = require('http-status-codes');
-const mongoose = require('./utils/mongoose');
+const mongoose = require('utils/mongoose');
 const app = express();
-const eventsInitialization = require('./managers/events');
-const routes = require('./routes');
+const eventsInitialization = require('managers/events');
+const routes = require('routes');
 
 const ldapCfg = {
   usernameField: 'username',
