@@ -2,6 +2,7 @@ const {
   EventsData,
 } = require('../../db');
 const Moment = require('moment');
+const HttpStatus = require('http-status-codes');
 
 const unixWeek = {
   $gte: (Moment().hour(0).minute(0).second(0).millisecond(0).unix() * 1000),
@@ -288,11 +289,18 @@ const getVcParts = async (req, res) => {
   return res.json(vcParts);
 };
 
+const hideEvent = async (req, res) => {
+  const { isHidden } = req.body;
+  await EventsData.findOneAndUpdate({ user: req.user }, { isHidden });
+  return res.sendStatus(HttpStatus.OK);
+};
+
 module.exports = {
   getCurrentWeekEvents,
   getCurrentWeekEventsAdmin,
   getEventData,
   getSelectedVcParts,
   getVcParts,
+  hideEvent,
 };
 
