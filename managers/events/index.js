@@ -2,6 +2,7 @@
 const {
   Builder, By, until,
 } = require('selenium-webdriver');
+const { Options } = require('selenium-webdriver/chrome');
 const queryString = require('query-string');
 const request = require('request');
 const j = request.jar();
@@ -13,7 +14,14 @@ const eventUrl = eventId => `http://saprap.co.rosenergoatom.ru/irj/servlet/prt/p
 
 
 const eventsWorker = async () => {
-  const driver = await new Builder().forBrowser('chrome').build();
+  const options = new Options();
+  options.addArguments('start-maximized'); // open Browser in maximized mode
+  options.addArguments('disable-infobars'); // disabling infobars
+  options.addArguments('--disable-extensions'); // disabling extensions
+  options.addArguments('--disable-gpu'); // applicable to windows os only
+  options.addArguments('--disable-dev-shm-usage'); // overcome limited resource problems
+  options.addArguments('--no-sandbox'); // Bypass OS security model
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   const portalUrl = 'http://a:a@saprap.co.rosenergoatom.ru/irj/portal';
   try {
     await driver.get(portalUrl);
