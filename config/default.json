@@ -16,7 +16,7 @@
     "options": {
       "keepAlive": 1,
       "useNewUrlParser": true,
-      "useUnifiedTopology": true,
+      "useUnifiedTopology": true
     },
     "debug": false
   },
