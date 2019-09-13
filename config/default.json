@@ -15,7 +15,8 @@
     "uri": "mongodb://timofeyp:defender1@ds115094.mlab.com:15094/data",
     "options": {
       "keepAlive": 1,
-      "useNewUrlParser": true
+      "useNewUrlParser": true,
+      "useUnifiedTopology": true,
     },
     "debug": false
   },
