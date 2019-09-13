@@ -7,6 +7,7 @@ mongoose.connect(
   config.get('database.options'),
 ).then(() => log.info('connection with mongo establishment'));
 mongoose.set('useFindAndModify', false);
+mongoose.set('useUnifiedTopology', true);
 mongoose.Promise = global.Promise;
 
 module.exports = mongoose;

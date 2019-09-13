@@ -1,7 +1,3 @@
-
-const {
-  Builder, By, until,
-} = require('selenium-webdriver');
 const { Options } = require('selenium-webdriver/chrome');
 const queryString = require('query-string');
 const request = require('request');
@@ -11,7 +7,12 @@ const Moment = require('moment');
 const currentDay = i => Moment().add(i, 'day');
 const eventsUrl = 'http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtroot/pcd!3aportal_content!2frea!2fca!2fservices_ca!2ffRooms_booking!2frooms_request!2frequests!2ffRoom_requests!2fpScheduler!2fru.rea.i_day_rooms_requests';
 const eventUrl = eventId => `http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtroot/rea.ru~request~rooms~portal.RoomRequest?event_id=${eventId}`;
-
+const Webdriver = require('selenium-webdriver');
+const chromeDriver = require('selenium-webdriver/chrome');
+const { path } = require('chromedriver');
+const service = new chromeDriver.ServiceBuilder(path).build();
+chromeDriver.setDefaultService(service);
+const { By, until } = Webdriver;
 
 const eventsWorker = async () => {
   const options = new Options();
@@ -21,7 +22,13 @@ const eventsWorker = async () => {
   options.addArguments('--disable-gpu'); // applicable to windows os only
   options.addArguments('--disable-dev-shm-usage'); // overcome limited resource problems
   options.addArguments('--no-sandbox'); // Bypass OS security model
-  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
+  options.addArguments('--headless'); // No window
+  const driver = await new Webdriver.Builder()
+    .withCapabilities(Webdriver.Capabilities.chrome())
+    .forBrowser('chrome')
+    .setChromeOptions(options)
+    .build();
+
   const portalUrl = 'http://a:a@saprap.co.rosenergoatom.ru/irj/portal';
   try {
     await driver.get(portalUrl);
@@ -37,8 +44,8 @@ const eventsWorker = async () => {
     cookies.forEach((el) => {
       j.setCookie(`${el.name}=${el.value}`, eventsUrl);
     });
-    // todayEventsRequest();
-    // weekEventsRequest();
+    todayEventsRequest();
+    weekEventsRequest();
   } catch (e) {
     console.log(e);
   } finally {
