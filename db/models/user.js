@@ -9,6 +9,7 @@ const User = new Schema({
   title: String,
   name: String,
   mail: String,
+  isAdmin: Boolean,
 });
 
 module.exports = mongoose.model('user', User);

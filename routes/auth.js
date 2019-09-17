@@ -24,8 +24,9 @@ router.post('/register', (req, res) => {
 router.post('/login', passport.authenticate('local'), (req, res) => res.redirect('/'));
 router.post('/login-ldap', passport.authenticate('ldapauth', { session: true }), async (req, res) => {
   const { user } = req;
+  const isAdminObjectKey = user.cn === 'asp-pts' || user.cn === 'asp-fsl' ? 'isAdmin' : null;
   const userData = {
-    user: user.cn, company: user.company, departament: user.department, phone: user.telephoneNumber, title: user.title, name: user.displayName, mail: user.mail,
+    user: user.cn, company: user.company, departament: user.department, phone: user.telephoneNumber, title: user.title, name: user.displayName, mail: user.mail, [isAdminObjectKey]: !!isAdminObjectKey,
   };
   const userFromDb = await User.findOneAndUpdate({ user: user.cn }, userData, { upsert: true });
   return res.json(userFromDb);
