@@ -4,15 +4,15 @@ const {
 const Moment = require('moment');
 const HttpStatus = require('http-status-codes');
 
-const unixWeek = {
+const unixWeek = () => ({
   $gte: (Moment().hour(0).minute(0).second(0).millisecond(0).unix() * 1000),
   $lte: (Moment().hour(23).minute(59).second(59).add(6, 'day').unix() * 1000),
-};
+});
 
-const week = {
+const week = () => ({
   $gte: Moment().hour(0).minute(0).second(0).millisecond(0).toDate(),
   $lte: Moment().hour(23).minute(59).second(59).add(6, 'day').toDate(),
-};
+});
 
 const getCurrentWeekEventsAdmin = async (req, res) => {
   const populate = {
@@ -73,7 +73,7 @@ const getCurrentWeekEvents = async (req, res, ...args) => {
   const events = await EventsData.aggregate([
     {
       $match: {
-        dateStart: week,
+        dateStart: week(),
       },
     }, {
       $match: filter,
@@ -212,7 +212,7 @@ const getSelectedVcParts = async (req, res) => {
   const vcParts = await EventsData.aggregate([
     {
       $match: {
-        dateStart: week,
+        dateStart: week(),
       },
     },
     {
@@ -263,7 +263,7 @@ const getVcParts = async (req, res) => {
   const vcParts = await EventsData.aggregate([
     {
       $match: {
-        'data.date_start': unixWeek,
+        'data.date_start': unixWeek(),
       },
     }, {
       $project: {
