@@ -17,11 +17,12 @@ const EventsData = new Schema({
   VCParts: Array,
   additional: Array,
   eventID: Number,
+  isHidden: Boolean,
 }, { toJSON: { virtuals: true } });
 
 EventsData.virtual('confirm', {
   ref: 'localConfirmations',
-  localField: 'eventID',
+  localField: '_id',
   foreignField: 'eventID',
   justOne: false,
 });

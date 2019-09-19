@@ -2,7 +2,7 @@ const mongoose = require('../../utils/mongoose');
 const { Schema } = mongoose;
 
 const LocalConfirmations = new Schema({
-  eventID: Number,
+  eventID: mongoose.Types.ObjectId,
   user: String,
   date: Date,
 }, { toJSON: { virtuals: true } });

@@ -2,7 +2,7 @@ const {
   EventsData,
 } = require('../../db');
 const Moment = require('moment');
-const HttpStatus = require('http-status-codes');
+const { ObjectId } = require('mongodb');
 
 const unixWeek = () => ({
   $gte: (Moment().hour(0).minute(0).second(0).millisecond(0).unix() * 1000),
@@ -14,12 +14,13 @@ const week = () => ({
   $lte: Moment().hour(23).minute(59).second(59).add(6, 'day').toDate(),
 });
 
+// Здесь происходит двойной populate, все подтверждения конференции и пользователь каждого подтверждения
 const getCurrentWeekEventsAdmin = async (req, res) => {
   const populate = {
     $lookup: {
       from: 'localconfirmations',
       let: {
-        eventID: '$eventID',
+        eventID: '$_id',
       },
       pipeline: [
         {
@@ -64,7 +65,7 @@ const getCurrentWeekEventsAdmin = async (req, res) => {
 
 
 const getCurrentWeekEvents = async (req, res, ...args) => {
-  const params = args[0].populate ? args[0].populate : { $match: {} };
+  const params = args[0].populate ? args[0].populate : { $match: { isHidden: { $nin: [true] } } };
   const filter = req.body.filter ? {
     VCPartsIDs: {
       $in: req.body.filter,
@@ -87,22 +88,7 @@ const getCurrentWeekEvents = async (req, res, ...args) => {
       },
     },
     {
-      $project: {
-        eventID: 1,
-        VCParts: 1,
-        VCPartsIDs: 1,
-        additional: 1,
-        chairman: 1,
-        dateStart: 1,
-        eventName: 1,
-        ownerDisplayname: 1,
-        presentation: 1,
-        responsibleDept: 1,
-        responsibleDisplayname: 1,
-        room: 1,
-        timeEnd: 1,
-        timeStart: 1,
-        yearMonthDay: 1,
+      $addFields: {
         confirmed: {
           $anyElementTrue: {
             $filter: {
@@ -112,7 +98,7 @@ const getCurrentWeekEvents = async (req, res, ...args) => {
                 $and: [
                   {
                     $eq: [
-                      '$$item.eventID', '$eventID',
+                      '$$item.eventID', '$_id',
                     ],
                   }, {
                     $eq: [
@@ -144,68 +130,52 @@ const getCurrentWeekEvents = async (req, res, ...args) => {
 };
 
 const getEventData = async (req, res) => {
-  if (req.isAuthenticated()) {
-    const event = await EventsData.aggregate([
-      {
-        $match: {
-          // eslint-disable-next-line radix
-          eventID: parseInt(req.params.id),
-        },
-      }, {
-        $lookup: {
-          from: 'localconfirmations',
-          localField: 'confirmed',
-          foreignField: 'confirmed',
-          as: 'confirmed',
-        },
-      }, {
-        $project: {
-          eventID: 1,
-          VCParts: 1,
-          VCPartsIDs: 1,
-          additional: 1,
-          chairman: 1,
-          dateStart: 1,
-          eventName: 1,
-          ownerDisplayname: 1,
-          presentation: 1,
-          responsibleDept: 1,
-          responsibleDisplayname: 1,
-          room: 1,
-          timeEnd: 1,
-          timeStart: 1,
-          yearMonthDay: 1,
-          confirmed: {
-            $anyElementTrue: {
-              $filter: {
-                input: '$confirmed',
-                as: 'item',
-                cond: {
-                  $and: [
-                    {
-                      $eq: [
-                        '$$item.eventID', '$eventID',
-                      ],
-                    }, {
-                      $eq: [
-                        '$$item.user', req.user,
-                      ],
-                    },
-                  ],
-                },
+  const event = req.isAuthenticated() ? await EventsData.aggregate([
+    {
+      $match: {
+        // eslint-disable-next-line radix
+        _id: ObjectId(req.params.id),
+      },
+    }, {
+      $lookup: {
+        from: 'localconfirmations',
+        localField: 'confirmed',
+        foreignField: 'confirmed',
+        as: 'confirmed',
+      },
+    }, {
+      $addFields: {
+        confirmed: {
+          $anyElementTrue: {
+            $filter: {
+              input: '$confirmed',
+              as: 'item',
+              cond: {
+                $and: [
+                  {
+                    $eq: [
+                      '$$item.eventID', '$_id',
+                    ],
+                  }, {
+                    $eq: [
+                      '$$item.user', req.user,
+                    ],
+                  },
+                ],
               },
             },
           },
         },
       },
-    ]);
-    return event ? res.json(event[0]) : res.json({});
-  }
-  const event = await EventsData.findOne({
+    },
+  ]) : await EventsData.find({
     // eslint-disable-next-line radix
-    eventID: parseInt(req.params.id),
+    _id: ObjectId(req.params.id),
   });
-  return event ? res.json(event) : res.json({});
+  if (event) {
+    return res ? res.json(event[0]) : event[0];
+  }
+  return {};
 };
 
 const getSelectedVcParts = async (req, res) => {
@@ -290,9 +260,11 @@ const getVcParts = async (req, res) => {
 };
 
 const hideEvent = async (req, res) => {
-  const { isHidden } = req.body;
-  await EventsData.findOneAndUpdate({ user: req.user }, { isHidden });
-  return res.sendStatus(HttpStatus.OK);
+  const { isHidden, eventId } = req.body;
+  req.params.id = eventId;
+  await EventsData.findOneAndUpdate({ _id: eventId }, { isHidden }, { new: true });
+  const event = await getEventData(req);
+  return res.json(event);
 };
 
 module.exports = {
