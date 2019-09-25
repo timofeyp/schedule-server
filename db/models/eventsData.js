@@ -18,6 +18,7 @@ const EventsData = new Schema({
   additional: Array,
   eventID: Number,
   isHidden: Boolean,
+  isCanceled: Boolean,
 }, { toJSON: { virtuals: true } });
 
 EventsData.virtual('confirm', {

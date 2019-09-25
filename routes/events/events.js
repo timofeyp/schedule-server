@@ -259,10 +259,11 @@ const getVcParts = async (req, res) => {
   return res.json(vcParts);
 };
 
-const hideEvent = async (req, res) => {
-  const { isHidden, eventId } = req.body;
-  req.params.id = eventId;
-  await EventsData.findOneAndUpdate({ _id: eventId }, { isHidden }, { new: true });
+const updateEvent = async (req, res) => {
+  const { _id } = req.body;
+  req.params.id = _id;
+  delete req.body._id;
+  await EventsData.findOneAndUpdate({ _id: ObjectId(_id) }, req.body);
   const event = await getEventData(req);
   return res.json(event);
 };
@@ -273,6 +274,6 @@ module.exports = {
   getEventData,
   getSelectedVcParts,
   getVcParts,
-  hideEvent,
+  updateEvent,
 };
 

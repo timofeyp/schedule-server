@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router({});
 const {
-  getCurrentWeekEvents, getEventData, getSelectedVcParts, getVcParts, getCurrentWeekEventsAdmin, hideEvent,
+  getCurrentWeekEvents, getEventData, getSelectedVcParts, getVcParts, getCurrentWeekEventsAdmin, updateEvent,
 } = require('./events');
 const {
   localConfirmEvent,
@@ -11,7 +11,7 @@ const isAdmin = require('routes/middlewares/check-authenticated');
 
 router.post('/get-week', getCurrentWeekEvents);
 router.post('/get-week-admin', isAuth, isAdmin, getCurrentWeekEventsAdmin);
-router.put('/hide-event', isAuth, isAdmin, hideEvent);
+router.put('/update', isAuth, isAdmin, updateEvent);
 router.get('/get-event-data/:id', getEventData);
 router.get('/get-selected-vc-parts', getSelectedVcParts);
 router.get('/get-vc-parts', getVcParts);
