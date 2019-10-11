@@ -68,7 +68,7 @@ const todayEventsRequest = () => setInterval(async () => {
 
 const weekEventsRequest = () => setInterval(() => {
   requestedDays.week ? null : requestWeek();
-}, 10000);
+}, 600000);
 
 function* asyncGenerator() {
   let i = 1;
