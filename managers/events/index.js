@@ -2,7 +2,7 @@ const { Options } = require('selenium-webdriver/chrome');
 const queryString = require('query-string');
 const request = require('request');
 const j = request.jar();
-const { Events, EventsData } = require('../../db');
+const { Events, EventsData, EventsNames } = require('../../db');
 const Moment = require('moment');
 const currentDay = i => Moment().add(i, 'day');
 const eventsUrl = 'http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtroot/pcd!3aportal_content!2frea!2fca!2fservices_ca!2ffRooms_booking!2frooms_request!2frequests!2ffRoom_requests!2fpScheduler!2fru.rea.i_day_rooms_requests';
@@ -157,6 +157,7 @@ const eventsDataManager = {
       eventsDataManager.eventsObj.events[day] = true;
       for (const event of events) {
         const data = await requestData(eventUrl(event.event_id), query);
+        await EventsNames.findOneAndUpdate({ name: data.event_name }, { name: data.event_name }, { upsert: true });
         const eventID = event.event_id;
         const room = data.rooms.filter(el => el.id === data.selected_room);
         const dateStart = Moment(data.date_start).toDate();
