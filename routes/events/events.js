@@ -1,5 +1,5 @@
 const {
-  EventsData,
+  EventsData, EventsNames
 } = require('../../db');
 const Moment = require('moment');
 const { ObjectId } = require('mongodb');
@@ -269,6 +269,8 @@ const updateEvent = async (req, res) => {
 
 const createEvent = async (req, res) => {
   const event = await EventsData.create(req.body);
+  const { eventName: name } = req.body;
+  await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(`${name}`, 'i') } }, { name }, { upsert: true });
   res.json(event);
 };
 

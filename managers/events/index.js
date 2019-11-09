@@ -167,7 +167,7 @@ const eventsDataManager = {
       eventsDataManager.eventsObj.events[day] = true;
       for (const event of events) {
         const data = await requestData(eventUrl(event.event_id), query);
-        await EventsNames.findOneAndUpdate({ name: data.event_name }, { name: data.event_name }, { upsert: true });
+        await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(`${data.event_name}`, 'i') } }, { name: data.event_name }, { upsert: true });
         const eventID = event.event_id;
         const room = data.rooms.filter(el => el.id === data.selected_room);
         const dateStart = Moment(data.date_start).toDate();
