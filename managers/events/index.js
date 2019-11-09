@@ -13,8 +13,9 @@ const { path } = require('chromedriver');
 const service = new chromeDriver.ServiceBuilder(path).build();
 chromeDriver.setDefaultService(service);
 const { By, until } = Webdriver;
+const portalUrl = 'http://a:a@saprap.co.rosenergoatom.ru/irj/portal';
 
-const eventsWorker = async () => {
+const getCookies = async (res) => {
   const options = new Options();
   options.addArguments('start-maximized'); // open Browser in maximized mode
   options.addArguments('disable-infobars'); // disabling infobars
@@ -28,22 +29,31 @@ const eventsWorker = async () => {
     .forBrowser('chrome')
     .setChromeOptions(options)
     .build();
+  await driver.get(portalUrl);
+  const loginElem = await driver.wait(until.elementLocated(By.css('*[id="logonuidfield"]')));
+  loginElem.sendKeys('asp-pts@ln.rosenergoatom.ru');
+  const passElem = await driver.wait(until.elementLocated(By.css('*[id="logonpassfield"]')));
+  passElem.sendKeys('Defender');
+  const buttonElem = await driver.wait(until.elementLocated(By.css('*[name="uidPasswordLogon"]')));
+  buttonElem.click();
+  await driver.wait(until.elementLocated(By.css('*[id="contentAreaFrame"]')));
+  const cookies = await driver.manage().getCookies();
+  driver.quit();
+  res(cookies.forEach((el) => {
+    j.setCookie(`${el.name}=${el.value}`, eventsUrl);
+  }));
+};
 
-  const portalUrl = 'http://a:a@saprap.co.rosenergoatom.ru/irj/portal';
+const getCookiesPeriodic = () => new Promise((res) => {
+  getCookies(res);
+  setInterval(() => {
+    getCookies(res);
+  }, 7 * 24 * 60 * 60 * 1000);
+});
+
+const eventsWorker = async () => {
   try {
-    await driver.get(portalUrl);
-    const loginElem = await driver.wait(until.elementLocated(By.css('*[id="logonuidfield"]')));
-    loginElem.sendKeys('asp-pts@ln.rosenergoatom.ru');
-    const passElem = await driver.wait(until.elementLocated(By.css('*[id="logonpassfield"]')));
-    passElem.sendKeys('Defender');
-    const buttonElem = await driver.wait(until.elementLocated(By.css('*[name="uidPasswordLogon"]')));
-    buttonElem.click();
-    await driver.wait(until.elementLocated(By.css('*[id="contentAreaFrame"]')));
-    const cookies = await driver.manage().getCookies();
-    driver.quit();
-    cookies.forEach((el) => {
-      j.setCookie(`${el.name}=${el.value}`, eventsUrl);
-    });
+    await getCookiesPeriodic();
     todayEventsRequest();
     weekEventsRequest();
   } catch (e) {
@@ -63,12 +73,12 @@ const todayEventsRequest = () => setInterval(async () => {
     date_refresh: currentDay(0).format('DD.MM.YYYY'),
   });
   const eventsResp = await requestData(eventsUrl, eventsQuery);
-  createEvents(eventsResp, currentDay(0).format('YYYY-MM-DD'));
-}, 10000);
+  createEvents(eventsResp, currentDay(0).format('DD-MM-YYYY'));
+}, 5 * 60 * 1000);
 
 const weekEventsRequest = () => setInterval(() => {
   requestedDays.week ? null : requestWeek();
-}, 600000);
+}, 20 * 60 * 1000);
 
 function* asyncGenerator() {
   let i = 1;
@@ -85,7 +95,7 @@ const requestWeek = async () => {
       date_refresh: currentDay(i).format('DD.MM.YYYY'),
     });
     const eventsResp = await requestData(eventsUrl, eventsQuery);
-    await createEvents(eventsResp, currentDay(i).format('YYYY-MM-DD'));
+    await createEvents(eventsResp, currentDay(i).format('DD-MM-YYYY'));
   }
   delete requestedDays.week;
 };
@@ -163,7 +173,7 @@ const eventsDataManager = {
         const dateStart = Moment(data.date_start).toDate();
         // eslint-disable-next-line radix
         const VCPartsIDs = data.selected_vc_parts.map(el => parseInt(el));
-        const yearMonthDay = Moment(dateStart).format('YYYY-MM-DD');
+        const yearMonthDay = Moment(dateStart).format('DD-MM-YYYY');
         const timeStart = `${data.HStart}:${data.MStart === 0 ? '00' : data.MStart}`;
         const timeEnd = `${data.HEnd}:${data.MEnd === 0 ? '00' : data.MEnd}`;
         const VCPartsArr = data.vc_parts.reduce((arr, el) => {

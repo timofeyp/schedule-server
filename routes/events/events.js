@@ -14,7 +14,6 @@ const week = () => ({
   $lte: Moment().hour(23).minute(59).second(59).add(6, 'day').toDate(),
 });
 
-// Здесь происходит двойной populate, все подтверждения конференции и пользователь каждого подтверждения
 const getCurrentWeekEventsAdmin = async (req, res) => {
   const populate = {
     $lookup: {
@@ -268,6 +267,11 @@ const updateEvent = async (req, res) => {
   return res.json(event);
 };
 
+const createEvent = async (req, res) => {
+  const event = await EventsData.create(req.body);
+  res.json(event);
+};
+
 module.exports = {
   getCurrentWeekEvents,
   getCurrentWeekEventsAdmin,
@@ -275,5 +279,6 @@ module.exports = {
   getSelectedVcParts,
   getVcParts,
   updateEvent,
+  createEvent,
 };
 
