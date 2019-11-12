@@ -6,7 +6,8 @@ const VCParts = require('./models/VCParts');
 const VCPartsCategory = require('./models/VCPartsCategory');
 const LocalConfirmations = require('./models/localConfirmations');
 const EventsNames = require('./models/eventsNames');
+const Responses = require('./models/responses');
 
 module.exports = {
-  User, Admin, Events, EventsData, VCParts, VCPartsCategory, LocalConfirmations, EventsNames,
+  User, Admin, Events, EventsData, VCParts, VCPartsCategory, LocalConfirmations, EventsNames, Responses,
 };

@@ -2,7 +2,9 @@ const { Options } = require('selenium-webdriver/chrome');
 const queryString = require('query-string');
 const request = require('request');
 const j = request.jar();
-const { Events, EventsData, EventsNames } = require('../../db');
+const {
+  Events, EventsData, EventsNames, Responses,
+} = require('../../db');
 const Moment = require('moment');
 const currentDay = i => Moment().add(i, 'day');
 const eventsUrl = 'http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtroot/pcd!3aportal_content!2frea!2fca!2fservices_ca!2ffRooms_booking!2frooms_request!2frequests!2ffRoom_requests!2fpScheduler!2fru.rea.i_day_rooms_requests';
@@ -14,6 +16,7 @@ const service = new chromeDriver.ServiceBuilder(path).build();
 chromeDriver.setDefaultService(service);
 const { By, until } = Webdriver;
 const portalUrl = 'http://a:a@saprap.co.rosenergoatom.ru/irj/portal';
+const log = require('utils/log')(module);
 
 const getCookies = async (res) => {
   const options = new Options();
@@ -57,9 +60,7 @@ const eventsWorker = async () => {
     todayEventsRequest();
     weekEventsRequest();
   } catch (e) {
-    console.log(e);
-  } finally {
-    // await driver.quit();
+    log.error(e);
   }
 };
 
@@ -101,7 +102,7 @@ const requestWeek = async () => {
 };
 
 const requestData = (url, query) => new Promise((res, rej) => {
-  console.log(url, query);
+  log.info(url, query);
   request.post(
     {
       url,

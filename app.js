@@ -3,7 +3,7 @@ const passport = require('passport');
 const LdapStrategy = require('passport-ldapauth');
 const config = require('config');
 const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+const morgan = require('morgan');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const MongoStore = require('connect-mongo')(session);
@@ -17,7 +17,7 @@ const ldapCfg = {
   usernameField: 'username',
   passwordField: 'password',
   handleErrorsAsFailures: true,
-  missingCredentialsStatus: HttpStatus.INTERNAL_SERVER_ERROR,
+  missingCredentialsStatus: HttpStatus.UNAUTHORIZED,
   server: {
     url: 'ldap://10.3.6.26:389',
     bindDN: 'CN=сuadmin,CN=Users,DC=ln,DC=rosenergoatom,DC=ru',
@@ -35,10 +35,11 @@ eventsInitialization();
 
 module.exports = app;
 
+
 function expressInitialization() {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: false }));
-  app.use(logger('dev'));
+  app.use(morgan('dev'));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
