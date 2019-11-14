@@ -18,7 +18,11 @@ const { By, until } = Webdriver;
 const portalUrl = 'http://a:a@saprap.co.rosenergoatom.ru/irj/portal';
 const log = require('utils/log')(module);
 
-const getCookies = async (res) => {
+const setCookies = cookies => cookies.forEach((el) => {
+  j.setCookie(`${el.name}=${el.value}`, eventsUrl);
+});
+
+const getCookies = async () => {
   const options = new Options();
   options.addArguments('start-maximized'); // open Browser in maximized mode
   options.addArguments('disable-infobars'); // disabling infobars
@@ -41,18 +45,16 @@ const getCookies = async (res) => {
   buttonElem.click();
   await driver.wait(until.elementLocated(By.css('*[id="contentAreaFrame"]')));
   const cookies = await driver.manage().getCookies();
-  driver.quit();
-  res(cookies.forEach((el) => {
-    j.setCookie(`${el.name}=${el.value}`, eventsUrl);
-  }));
+  await driver.quit();
+  return setCookies(cookies);
 };
 
-const getCookiesPeriodic = () => new Promise((res) => {
-  getCookies(res);
+const getCookiesPeriodic = async () => {
+  await getCookies();
   setInterval(() => {
-    getCookies(res);
+    getCookies();
   }, 7 * 24 * 60 * 60 * 1000);
-});
+};
 
 const eventsWorker = async () => {
   try {
@@ -126,7 +128,7 @@ const requestData = (url, query) => new Promise((res, rej) => {
           const resp = JSON.parse(body);
           res(resp);
         } catch (e) {
-          getCookies(res);
+          getCookies();
           rej(e);
         }
       }
