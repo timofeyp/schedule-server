@@ -3,7 +3,7 @@ const queryString = require('query-string');
 const request = require('request');
 const j = request.jar();
 const {
-  Events, EventsData, EventsNames, Responses,
+  Events, EventsData, EventsNames,
 } = require('../../db');
 const Moment = require('moment');
 const currentDay = i => Moment().add(i, 'day');
@@ -126,6 +126,7 @@ const requestData = (url, query) => new Promise((res, rej) => {
           const resp = JSON.parse(body);
           res(resp);
         } catch (e) {
+          getCookies(res);
           rej(e);
         }
       }
