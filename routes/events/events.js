@@ -1,7 +1,8 @@
 const {
-  EventsData, EventsNames
+  EventsData, EventsNames,
 } = require('../../db');
 const Moment = require('moment');
+const parseQuery = require('utils/parseIntQuery');
 const { ObjectId } = require('mongodb');
 
 const unixWeek = () => ({
@@ -14,60 +15,57 @@ const week = () => ({
   $lte: Moment().hour(23).minute(59).second(59).add(6, 'day').toDate(),
 });
 
-const getCurrentWeekEventsAdmin = async (req, res) => {
-  const populate = {
-    $lookup: {
-      from: 'localconfirmations',
-      let: {
-        eventID: '$_id',
-      },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $eq: [
-                '$eventID', '$$eventID',
-              ],
-            },
-          },
-        }, {
-          $lookup: {
-            from: 'users',
-            let: {
-              user: '$user',
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: [
-                      '$$user', '$user',
-                    ],
-                  },
-                },
-              },
+const populateConfirmedUsers = {
+  $lookup: {
+    from: 'localconfirmations',
+    let: {
+      eventID: '$_id',
+    },
+    pipeline: [
+      {
+        $match: {
+          $expr: {
+            $eq: [
+              '$eventID', '$$eventID',
             ],
-            as: 'user',
-          },
-        }, {
-          $unwind: {
-            path: '$user',
           },
         },
-      ],
-      as: 'confirms',
-    },
-  };
-  const events = await getCurrentWeekEvents(req, res, { populate });
-  return res.json(events);
+      }, {
+        $lookup: {
+          from: 'users',
+          let: {
+            user: '$user',
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: [
+                    '$$user', '$user',
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'user',
+        },
+      }, {
+        $unwind: {
+          path: '$user',
+        },
+      },
+    ],
+    as: 'confirms',
+  },
 };
 
 
-const getCurrentWeekEvents = async (req, res, ...args) => {
-  const params = args[0].populate ? args[0].populate : { $match: { isHidden: { $nin: [true] } } };
-  const filter = req.body.filter ? {
+const getCurrentWeekEvents = async (req, res) => {
+  const params = req.user && req.user.isAdmin ? populateConfirmedUsers : { $match: { isHidden: { $nin: [true] } } };
+  const { filter } = parseQuery(req.query);
+  const match = filter ? {
     VCPartsIDs: {
-      $in: req.body.filter,
+      $in: filter.map(e => +e),
     },
   } : {};
   const events = await EventsData.aggregate([
@@ -76,7 +74,7 @@ const getCurrentWeekEvents = async (req, res, ...args) => {
         dateStart: week(),
       },
     }, {
-      $match: filter,
+      $match: match,
     },
     {
       $lookup: {
@@ -125,7 +123,7 @@ const getCurrentWeekEvents = async (req, res, ...args) => {
       },
     },
   ]);
-  return args[0].populate ? events : res.json(events);
+  return res.json(events);
 };
 
 const getEventData = async (req, res) => {
@@ -276,7 +274,6 @@ const createEvent = async (req, res) => {
 
 module.exports = {
   getCurrentWeekEvents,
-  getCurrentWeekEventsAdmin,
   getEventData,
   getSelectedVcParts,
   getVcParts,

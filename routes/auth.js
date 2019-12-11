@@ -24,16 +24,12 @@ router.post('/register', (req, res) => {
 router.post('/login', passport.authenticate('local'), (req, res) => res.redirect('/'));
 router.post('/login-ldap', passport.authenticate('ldapauth', { session: true }), async (req, res) => {
   const { user } = req;
-  const isAdminObjectKey = user.cn === 'asp-pts' || user.cn === 'asp-fsl' ? 'isAdmin' : null;
-  const userData = {
-    user: user.cn, company: user.company, departament: user.department, phone: user.telephoneNumber, title: user.title, name: user.displayName, mail: user.mail, [isAdminObjectKey]: !!isAdminObjectKey,
-  };
-  const userFromDb = await User.findOneAndUpdate({ user: user.cn }, userData, { upsert: true });
-  return res.json(userFromDb);
+  const userFromDb = await User.findOne({ login: user.cn });
+  return res.send(userFromDb);
 });
 
 router.get('/session', isAuth, async (req, res) => {
-  const user = await User.findOne({ user: req.user });
+  const user = await User.findOne({ login: req.user.login });
   res.status(HttpStatus.OK).json(user);
 });
 

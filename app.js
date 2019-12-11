@@ -11,6 +11,7 @@ const HttpStatus = require('http-status-codes');
 const mongoose = require('utils/mongoose');
 const app = express();
 const eventsInitialization = require('managers/events');
+const { User } = require('db');
 const routes = require('routes');
 
 const ldapCfg = {
@@ -68,12 +69,15 @@ function passportInitialization() {
     }
     return done(null, null);
   })));
-  // passport.use(new LocalStrategy(User.authenticate()));
-  passport.serializeUser((user, done) => {
-    done(null, user.cn);
+  passport.serializeUser(async (user, done) => {
+    const userData = {
+      login: user.cn, company: user.company, departament: user.department, phone: user.telephoneNumber, title: user.title, name: user.displayName, mail: user.mail,
+    };
+    const userFromDb = await User.findOneAndUpdate({ login: user.cn }, userData, { upsert: true, new: true });
+    done(null, userFromDb.toObject());
   });
-  passport.deserializeUser((id, done) => {
-    done(null, id);
+  passport.deserializeUser((obj, done) => {
+    done(null, obj);
     return null;
   });
 }

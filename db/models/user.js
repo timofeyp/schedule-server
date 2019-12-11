@@ -2,7 +2,7 @@ const mongoose = require('../../utils/mongoose');
 const { Schema } = mongoose;
 
 const User = new Schema({
-  user: String,
+  login: String,
   company: String,
   departament: String,
   phone: String,
