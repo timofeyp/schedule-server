@@ -6,8 +6,8 @@ const HttpStatus = require('http-status-codes');
 
 const localConfirmEvent = async (req, res) => {
   const { id } = req.params;
-  await LocalConfirmations.findOneAndUpdate({ eventID: id, user: req.user }, {
-    eventID: id, user: req.user, date: Moment().utc(true).toISOString(),
+  await LocalConfirmations.findOneAndUpdate({ eventID: id, user: req.user.login }, {
+    eventID: id, user: req.user.login, date: Moment().utc(true).toISOString(),
   }, { upsert: true }).populate({ path: 'confirm', populate: { path: 'userData' } });
   const event = await EventsData
     .findOne({ _id: id })

@@ -10,7 +10,7 @@ const LocalConfirmations = new Schema({
 LocalConfirmations.virtual('userData', {
   ref: 'user',
   localField: 'user',
-  foreignField: 'user',
+  foreignField: 'login',
   justOne: true,
 });
 

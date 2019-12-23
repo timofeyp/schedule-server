@@ -34,7 +34,7 @@ const populateConfirmedUsers = {
         $lookup: {
           from: 'users',
           let: {
-            user: '$user',
+            user: '$login',
           },
           pipeline: [
             {
@@ -99,7 +99,7 @@ const getCurrentWeekEvents = async (req, res) => {
                     ],
                   }, {
                     $eq: [
-                      '$$item.user', req.user,
+                      '$$item.user', req.user && req.user.login,
                     ],
                   },
                 ],
@@ -155,7 +155,7 @@ const getEventData = async (req, res) => {
                     ],
                   }, {
                     $eq: [
-                      '$$item.user', req.user,
+                      '$$item.user', req.user.login,
                     ],
                   },
                 ],
@@ -260,7 +260,7 @@ const updateEvent = async (req, res) => {
   const { _id } = req.body;
   req.params.id = _id;
   delete req.body._id;
-  await EventsData.findOneAndUpdate({ _id: ObjectId(_id) }, req.body);
+  await EventsData.findOneAndUpdate({ _id: ObjectId(_id) }, req.body, { new: true });
   const event = await getEventData(req);
   return res.json(event);
 };

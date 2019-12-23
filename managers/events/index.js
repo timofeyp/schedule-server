@@ -104,7 +104,7 @@ const requestWeek = async () => {
 };
 
 const requestData = (url, query) => new Promise((res, rej) => {
-  log.info(url, query);
+  log.info({ url, query });
   request.post(
     {
       url,
