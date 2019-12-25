@@ -14,7 +14,7 @@ const isAdmin = require('routes/middlewares/check-authenticated');
 
 router.get('/get-week', getCurrentWeekEvents);
 router.put('/update', isAuth, isAdmin, updateEvent);
-router.post('/create', isAuth, isAdmin, createEvent);
+router.post('/create', isAuth, createEvent);
 router.get('/get-event-data/:id', getEventData);
 router.get('/get-selected-vc-parts', getSelectedVcParts);
 router.get('/get-vc-parts', getVcParts);

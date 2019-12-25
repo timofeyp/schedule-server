@@ -266,9 +266,10 @@ const updateEvent = async (req, res) => {
 };
 
 const createEvent = async (req, res) => {
-  const event = await EventsData.create(req.body);
+  const event = await EventsData.create({ ...req.body, isHidden: !req.user.isAdmin });
   const { eventName: name } = req.body;
-  await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(`${name}`, 'i') } }, { name }, { upsert: true });
+  const pattern = name.replace(/[^A-zА-я0-9\s]/gmi, '\\W');
+  await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(pattern, 'i') } }, { name }, { upsert: true });
   res.json(event);
 };
 
