@@ -9,7 +9,7 @@ const localConfirmEvent = async (req, res) => {
   await LocalConfirmations.findOneAndUpdate({ eventID: id, userID: req.user._id }, {
     eventID: id, user: req.user._id, date: Moment().utc(true).toISOString(),
   }, { upsert: true });
-  return res.status(HttpStatus.NO_CONTENT);
+  return res.status(HttpStatus.NO_CONTENT).end();
 };
 
 module.exports = {

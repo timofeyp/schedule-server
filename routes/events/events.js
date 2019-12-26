@@ -1,5 +1,5 @@
 const {
-  EventsData, EventsNames,
+  EventsData, EventsNames, LocalConfirmations,
 } = require('../../db');
 const Moment = require('moment');
 const parseQuery = require('utils/parseIntQuery');
@@ -253,6 +253,11 @@ const updateEvent = async (req, res) => {
 
 const createEvent = async (req, res) => {
   const event = await EventsData.create({ ...req.body, isHidden: !req.user.isAdmin });
+  if (!req.user.isAdmin) {
+    await LocalConfirmations.findOneAndUpdate({ eventID: event._id, userID: req.user._id }, {
+      eventID: event._id, user: req.user._id, date: Moment().utc(true).toISOString(),
+    }, { upsert: true });
+  }
   const { eventName: name } = req.body;
   const pattern = name.replace(/[^A-zА-я0-9\s]/gmi, '\\W');
   await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(pattern, 'i') } }, { name }, { upsert: true });
