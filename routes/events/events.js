@@ -33,26 +33,12 @@ const populateConfirmedUsers = {
       }, {
         $lookup: {
           from: 'users',
-          let: {
-            user: '$login',
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: [
-                    '$$user', '$user',
-                  ],
-                },
-              },
-            },
-          ],
+          localField: 'userID',
+          foreignField: '_id',
           as: 'user',
         },
       }, {
-        $unwind: {
-          path: '$user',
-        },
+        $unwind: '$user',
       },
     ],
     as: 'confirms',
@@ -99,7 +85,7 @@ const getCurrentWeekEvents = async (req, res) => {
                     ],
                   }, {
                     $eq: [
-                      '$$item.user', req.user && req.user.login,
+                      '$$item.user', req.user && req.user._id,
                     ],
                   },
                 ],
@@ -155,7 +141,7 @@ const getEventData = async (req, res) => {
                     ],
                   }, {
                     $eq: [
-                      '$$item.user', req.user.login,
+                      '$$item.userID', req.user && req.user._id,
                     ],
                   },
                 ],

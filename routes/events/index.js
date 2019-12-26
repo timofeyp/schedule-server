@@ -18,7 +18,7 @@ router.post('/create', isAuth, createEvent);
 router.get('/get-event-data/:id', getEventData);
 router.get('/get-selected-vc-parts', getSelectedVcParts);
 router.get('/get-vc-parts', getVcParts);
-router.get('/local-confirm-event/:id', isAuth, localConfirmEvent);
+router.put('/local-confirm-event/:id', isAuth, localConfirmEvent);
 router.get('/names/:name', getNames);
 
 module.exports = router;

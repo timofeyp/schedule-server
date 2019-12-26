@@ -1,18 +1,15 @@
 const {
-  EventsData, LocalConfirmations,
+  LocalConfirmations,
 } = require('../../db');
 const Moment = require('moment');
 const HttpStatus = require('http-status-codes');
 
 const localConfirmEvent = async (req, res) => {
   const { id } = req.params;
-  await LocalConfirmations.findOneAndUpdate({ eventID: id, user: req.user.login }, {
-    eventID: id, user: req.user.login, date: Moment().utc(true).toISOString(),
-  }, { upsert: true }).populate({ path: 'confirm', populate: { path: 'userData' } });
-  const event = await EventsData
-    .findOne({ _id: id })
-    .populate({ path: 'confirm', populate: { path: 'userData' } });
-  return res.status(HttpStatus.OK).json(event);
+  await LocalConfirmations.findOneAndUpdate({ eventID: id, userID: req.user._id }, {
+    eventID: id, user: req.user._id, date: Moment().utc(true).toISOString(),
+  }, { upsert: true });
+  return res.status(HttpStatus.NO_CONTENT);
 };
 
 module.exports = {
