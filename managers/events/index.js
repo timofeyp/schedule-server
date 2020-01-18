@@ -59,8 +59,8 @@ const getCookiesPeriodic = async () => {
 const eventsWorker = async () => {
   try {
     await getCookiesPeriodic();
-    todayEventsRequest();
-    weekEventsRequest();
+    // todayEventsRequest();
+    // weekEventsRequest();
   } catch (e) {
     log.error(e);
   }

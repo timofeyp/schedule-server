@@ -6,13 +6,13 @@ const parseQuery = require('utils/parseIntQuery');
 const { ObjectId } = require('mongodb');
 
 const unixWeek = () => ({
-  $gte: (Moment().hour(0).minute(0).second(0).millisecond(0).unix() * 1000),
-  $lte: (Moment().hour(23).minute(59).second(59).add(6, 'day').unix() * 1000),
+  $gte: (Moment().year(2019).month(11).date(23).hour(0).minute(0).second(0).millisecond(0).unix() * 1000),
+  $lte: (Moment().year(2019).month(11).date(27).hour(23).minute(59).second(59).add(6, 'day').unix() * 1000),
 });
 
 const week = () => ({
-  $gte: Moment().hour(0).minute(0).second(0).millisecond(0).toDate(),
-  $lte: Moment().hour(23).minute(59).second(59).add(6, 'day').toDate(),
+  $gte: Moment().year(2019).month(11).date(23).hour(0).minute(0).second(0).millisecond(0).toDate(),
+  $lte: Moment().year(2019).month(11).date(27).hour(23).hour(23).minute(59).second(59).add(6, 'day').toDate(),
 });
 
 const populateConfirmedUsers = {
