@@ -70,14 +70,17 @@ module.exports = eventsWorker;
 
 const requestedDays = {};
 
-const todayEventsRequest = () => setInterval(async () => {
+const todayEventsRequest = async () => {
   const eventsQuery = queryString.stringify({
     action: 'refresh',
     date_refresh: currentDay(0).format('DD.MM.YYYY'),
   });
   const eventsResp = await requestData(eventsUrl, eventsQuery);
   createEvents(eventsResp, currentDay(0).format('DD-MM-YYYY'));
-}, 6 * 60 * 1000);
+  setInterval(() => {
+    todayEventsRequest();
+  }, 6 * 60 * 1000);
+};
 
 const weekEventsRequest = () => setInterval(() => {
   requestedDays.week ? null : requestWeek();
