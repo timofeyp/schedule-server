@@ -2,4 +2,9 @@ const eventsUrl = 'http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtr
 const eventUrl = eventId => `http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtroot/rea.ru~request~rooms~portal.RoomRequest?event_id=${eventId}`;
 const portalUrl = 'http://a:a@saprap.co.rosenergoatom.ru/irj/portal';
 const todayEventsRequestPeriod = 5 * 60 * 1000;
-const weekEventsRequest = 20 * 60 * 1000;
+const weekEventsRequestPeriod = 20 * 60 * 1000;
+const getCookiesPeriod = 24 * 60 * 60 * 1000;
+
+module.exports = {
+  eventsUrl, eventUrl, portalUrl, todayEventsRequestPeriod, weekEventsRequestPeriod, getCookiesPeriod,
+};
