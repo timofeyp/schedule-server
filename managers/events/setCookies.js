@@ -5,7 +5,7 @@ const { portalUrl, eventsUrl } = require('managers/events/constants');
 const { Options } = chromeDriver;
 const { By, until } = Webdriver;
 const log = require('utils/log')(module);
-const { getCookiesPeriod } = require('managers/events/constants');
+const { jar } = require('managers/events/requestData');
 
 const options = new Options();
 options.addArguments('start-maximized'); // open Browser in maximized mode
@@ -19,9 +19,7 @@ options.addArguments('--headless'); // No window
 const service = new chromeDriver.ServiceBuilder(path).build();
 chromeDriver.setDefaultService(service);
 
-let isIntervalStarted = false;
-
-const setCookies = async (j) => {
+const setCookies = async () => {
   const driver = await new Webdriver.Builder()
     .withCapabilities(Webdriver.Capabilities.chrome())
     .forBrowser('chrome')
@@ -38,19 +36,9 @@ const setCookies = async (j) => {
   const cookies = await driver.manage().getCookies();
   await driver.quit();
   cookies.forEach((el) => {
-    j.setCookie(`${el.name}=${el.value}`, eventsUrl);
+    jar.setCookie(`${el.name}=${el.value}`, eventsUrl);
   });
   log.info('cookies set');
-  if (!isIntervalStarted) {
-    setInterval(async () => {
-      isIntervalStarted = true;
-      try {
-        await setCookies(j);
-      } catch (e) {
-        log.error(e);
-      }
-    }, getCookiesPeriod);
-  }
 };
 
 module.exports = setCookies;

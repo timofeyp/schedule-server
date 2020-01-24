@@ -1,21 +1,20 @@
-const mongoose = require('./mongoose');
+const log = require('utils/log')(module);
 
-// The purpose this is to make sure every successful
-// and error response is sent in the same format.
-const error = (res, err, code) => { // Error Web Response
-  if (typeof err === 'object' && typeof err.message !== 'undefined') {
-    err = err.message;
+const delay = time => new Promise(res => setTimeout(() => res(), time));
+
+const tryCatchWrapper = async (func) => {
+  try {
+    await func();
+  } catch (e) {
+    log.error(e);
   }
-  return response(res, { error: err }, code, false);
 };
 
-const success = (res, data, code) => response(res, data, code, true);
-
-const response = (res, data, code, success) => {
-  if (typeof code !== 'undefined') {
-    res.statusCode = code;
-  }
-  return res.json({ ...data, success });
+const intervalWork = async (func, time) => {
+  await tryCatchWrapper(func);
+  setInterval(() => tryCatchWrapper(func), time);
 };
 
-module.exports = { mongoose, success, error };
+module.exports = {
+  delay, intervalWork,
+};
