@@ -14,20 +14,6 @@ const eventsInitialization = require('managers/events');
 const { User } = require('db');
 const routes = require('routes');
 
-const ldapCfg = {
-  usernameField: 'username',
-  passwordField: 'password',
-  handleErrorsAsFailures: true,
-  missingCredentialsStatus: HttpStatus.UNAUTHORIZED,
-  server: {
-    url: 'ldap://10.3.6.26:389',
-    bindDN: 'CN=сuadmin,CN=Users,DC=ln,DC=rosenergoatom,DC=ru',
-    bindCredentials: '1QAZse4',
-    searchBase: 'OU=laes.ru,DC=ln,DC=rosenergoatom,DC=ru',
-    searchFilter: '(name={{username}})',
-  },
-};
-
 expressInitialization();
 passportInitialization();
 routesInitialization();
@@ -63,7 +49,7 @@ function passportInitialization() {
   app.use(passport.session());
 
   // passport config
-  passport.use(new LdapStrategy(ldapCfg, ((user, done) => {
+  passport.use(new LdapStrategy(config.get('LDAP'), ((user, done) => {
     if (user) {
       return done(null, user);
     }

@@ -1,65 +1,23 @@
-const { Options } = require('selenium-webdriver/chrome');
 const queryString = require('query-string');
-const request = require('request');
-const j = request.jar();
 const {
   Events, EventsData, EventsNames,
 } = require('../../db');
 const Moment = require('moment');
 const currentDay = i => Moment().add(i, 'day');
-const eventsUrl = 'http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtroot/pcd!3aportal_content!2frea!2fca!2fservices_ca!2ffRooms_booking!2frooms_request!2frequests!2ffRoom_requests!2fpScheduler!2fru.rea.i_day_rooms_requests';
-const eventUrl = eventId => `http://saprap.co.rosenergoatom.ru/irj/servlet/prt/portal/prtroot/rea.ru~request~rooms~portal.RoomRequest?event_id=${eventId}`;
-const Webdriver = require('selenium-webdriver');
-const chromeDriver = require('selenium-webdriver/chrome');
-const { path } = require('chromedriver');
-const service = new chromeDriver.ServiceBuilder(path).build();
-chromeDriver.setDefaultService(service);
-const { By, until } = Webdriver;
-const portalUrl = 'http://a:a@saprap.co.rosenergoatom.ru/irj/portal';
+const {
+  eventsUrl, eventUrl, weekEventsRequestPeriod, todayEventsRequestPeriod, increaseDaysArray, requestEventsDataPause, setCookiesPeriod,
+} = require('managers/events/constants');
+const { requestData } = require('managers/events/requestData');
+const setCookies = require('managers/events/setCookies');
 const log = require('utils/log')(module);
+const { intervalWork } = require('utils');
 
-const setCookies = cookies => cookies.forEach((el) => {
-  j.setCookie(`${el.name}=${el.value}`, eventsUrl);
-});
-
-const getCookies = async () => {
-  const options = new Options();
-  options.addArguments('start-maximized'); // open Browser in maximized mode
-  options.addArguments('disable-infobars'); // disabling infobars
-  options.addArguments('--disable-extensions'); // disabling extensions
-  options.addArguments('--disable-gpu'); // applicable to windows os only
-  options.addArguments('--disable-dev-shm-usage'); // overcome limited resource problems
-  options.addArguments('--no-sandbox'); // Bypass OS security model
-  options.addArguments('--headless'); // No window
-  const driver = await new Webdriver.Builder()
-    .withCapabilities(Webdriver.Capabilities.chrome())
-    .forBrowser('chrome')
-    .setChromeOptions(options)
-    .build();
-  await driver.get(portalUrl);
-  const loginElem = await driver.wait(until.elementLocated(By.css('*[id="logonuidfield"]')));
-  loginElem.sendKeys('asp-pts@ln.rosenergoatom.ru');
-  const passElem = await driver.wait(until.elementLocated(By.css('*[id="logonpassfield"]')));
-  passElem.sendKeys('Defender');
-  const buttonElem = await driver.wait(until.elementLocated(By.css('*[name="uidPasswordLogon"]')));
-  buttonElem.click();
-  await driver.wait(until.elementLocated(By.css('*[id="contentAreaFrame"]')));
-  const cookies = await driver.manage().getCookies();
-  await driver.quit();
-  return setCookies(cookies);
-};
-
-const getCookiesPeriodic = async () => {
-  await getCookies();
-  setInterval(() => {
-    getCookies();
-  }, 7 * 24 * 60 * 60 * 1000);
-};
+const requestedDays = {};
 
 const eventsWorker = async () => {
   try {
-    await getCookiesPeriodic();
-    todayEventsRequest();
+    await intervalWork(setCookies, setCookiesPeriod);
+    await intervalWork(requestToday, todayEventsRequestPeriod);
     weekEventsRequest();
   } catch (e) {
     log.error(e);
@@ -68,9 +26,14 @@ const eventsWorker = async () => {
 
 module.exports = eventsWorker;
 
-const requestedDays = {};
 
-const todayEventsRequest = async () => {
+const weekEventsRequest = () => {
+  if (!requestedDays.week) {
+    intervalWork(requestWeek, weekEventsRequestPeriod);
+  }
+};
+
+const requestToday = async () => {
   const eventsQuery = queryString.stringify({
     action: 'refresh',
     date_refresh: currentDay(0).format('DD.MM.YYYY'),
@@ -82,20 +45,9 @@ setInterval(() => {
   todayEventsRequest();
 }, 5 * 60 * 1000);
 
-const weekEventsRequest = () => setInterval(() => {
-  requestedDays.week ? null : requestWeek();
-}, 20 * 60 * 1000);
-
-function* asyncGenerator() {
-  let i = 1;
-  while (i < 21) {
-    yield i++;
-  }
-}
-
 const requestWeek = async () => {
   requestedDays.week = true;
-  for (const i of asyncGenerator()) {
+  for (const i of increaseDaysArray) {
     const eventsQuery = queryString.stringify({
       action: 'refresh',
       date_refresh: currentDay(i).format('DD.MM.YYYY'),
@@ -105,39 +57,6 @@ const requestWeek = async () => {
   }
   delete requestedDays.week;
 };
-
-const requestData = (url, query) => new Promise((res, rej) => {
-  log.info({ url, query });
-  request.post(
-    {
-      url,
-      headers:
-        {
-          'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          accept: 'text/plain, */*; q=0.01',
-          'x-requested-with': 'XMLHttpRequest',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.90 Safari/537.36',
-        },
-      form: query,
-      jar: j,
-    }
-    , async (error, response, body) => {
-      if (error) {
-        rej(error);
-      } else if (response.statusCode !== 200) {
-        rej(new Error(`Code ${response.statusCode}, message ${response.statusMessage}`));
-      } else if (body) {
-        try {
-          const resp = JSON.parse(body);
-          res(resp);
-        } catch (e) {
-          getCookies();
-          rej(e);
-        }
-      }
-    }
-  );
-});
 
 const createEvents = (resp, day) => new Promise(async (res, rej) => {
   if (resp.events && resp.events.length && !requestedDays[day]) {
@@ -162,65 +81,60 @@ const createEvents = (resp, day) => new Promise(async (res, rej) => {
 });
 
 const eventsDataManager = {
-  eventsObj: {
-    timeoutTrigger: true,
-    events: {},
+  pausedEvents: {},
+  resetEventsPause(day) {
+    delete this.pausedEvents[day];
   },
-  requestEventsData: async (events, day) => {
+  async requestEventsData(events, day) {
     const query = queryString.stringify({
       action: 'initStartParams',
     });
-    if (eventsDataManager.eventsObj.events[day] !== true) {
-      eventsDataManager.eventsObj.events[day] = true;
+    if (this.pausedEvents[day] !== true) {
+      this.pausedEvents[day] = true;
       for (const event of events) {
-        const data = await requestData(eventUrl(event.event_id), query);
-        const pattern = data.event_name.replace(/[^A-zА-я0-9]/gmi, '\\W');
-        await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(pattern, 'i') } }, { name: data.event_name }, { upsert: true });
         const eventID = event.event_id;
-        const room = data.rooms.filter(el => el.id === data.selected_room);
-        const dateStart = Moment(data.date_start).toDate();
-        // eslint-disable-next-line radix
-        const VCPartsIDs = data.selected_vc_parts.map(el => parseInt(el));
-        const yearMonthDay = Moment(dateStart).format('DD-MM-YYYY');
-        const timeStart = `${data.HStart}:${data.MStart === 0 ? '00' : data.MStart}`;
-        const timeEnd = `${data.HEnd}:${data.MEnd === 0 ? '00' : data.MEnd}`;
-        const VCPartsArr = data.vc_parts.reduce((arr, el) => {
-          const groupName = el.group_name;
-          const VCParts = el.vc_parts.filter(i => VCPartsIDs.includes(i.id));
-          if (VCParts.length) {
-            arr.push({ groupName, VCParts });
-          }
-          return arr;
-        }, []);
-        const item = {
-          eventID,
-          room: room[0],
-          eventName: data.event_name,
-          dateStart,
-          VCPartsIDs,
-          responsibleDept: data.responsible_dept,
-          responsibleDisplayname: data.responsible_displayname,
-          ownerDisplayname: data.owner_displayname,
-          chairman: data.chairman_displayname,
-          presentation: data.presentation,
-          yearMonthDay,
-          timeStart,
-          timeEnd,
-          VCParts: VCPartsArr,
-          additional: data.reqaddpart,
-        };
+        const data = await requestData(eventUrl(eventID), query);
+        const item = this.prepareEventItem(data, eventID);
         await EventsData.findOneAndUpdate({ eventID }, item, { upsert: true });
+        setTimeout(() => this.resetEventsPause(day), requestEventsDataPause);
       }
     }
-    if (eventsDataManager.eventsObj.timeoutTrigger === true) {
-      eventsDataManager.eventsObj.timeoutTrigger = false;
-      setTimeout(() => {
-        eventsDataManager.eventsObj = {
-          events: {},
-          timeoutTrigger: true,
-        };
-      }, 1200000);
-    }
+  },
+  async prepareEventItem(data, eventID) {
+    const pattern = data.event_name.replace(/[^A-zА-я0-9]/gmi, '\\W');
+    await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(pattern, 'i') } }, { name: data.event_name }, { upsert: true });
+    const room = data.rooms ? data.rooms.filter(el => el.id === data.selected_room) : [];
+    const dateStart = Moment(data.date_start).toDate();
+    // eslint-disable-next-line radix
+    const VCPartsIDs = data.selected_vc_parts ? data.selected_vc_parts.map(el => parseInt(el)) : [];
+    const yearMonthDay = Moment(dateStart).format('DD-MM-YYYY');
+    const timeStart = `${data.HStart}:${data.MStart === 0 ? '00' : data.MStart}`;
+    const timeEnd = `${data.HEnd}:${data.MEnd === 0 ? '00' : data.MEnd}`;
+    const VCPartsArr = data.vc_parts.reduce((VCPartsArray, el) => {
+      const groupName = el.group_name;
+      const VCParts = el.vc_parts.filter(i => VCPartsIDs.includes(i.id));
+      if (VCParts.length) {
+        VCPartsArray.push({ groupName, VCParts });
+      }
+      return VCPartsArray;
+    }, []);
+    return {
+      eventID,
+      room: room[0],
+      eventName: data.event_name,
+      dateStart,
+      VCPartsIDs,
+      responsibleDept: data.responsible_dept,
+      responsibleDisplayname: data.responsible_displayname,
+      ownerDisplayname: data.owner_displayname,
+      chairman: data.chairman_displayname,
+      presentation: data.presentation,
+      yearMonthDay,
+      timeStart,
+      timeEnd,
+      VCParts: VCPartsArr,
+      additional: data.reqaddpart,
+    };
   },
 };
 
