@@ -41,9 +41,6 @@ const requestToday = async () => {
   const eventsResp = await requestData(eventsUrl, eventsQuery);
   createEvents(eventsResp, currentDay(0).format('DD-MM-YYYY'));
 };
-setInterval(() => {
-  todayEventsRequest();
-}, 5 * 60 * 1000);
 
 const requestWeek = async () => {
   requestedDays.week = true;
