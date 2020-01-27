@@ -86,15 +86,15 @@ const eventsDataManager = {
     const query = queryString.stringify({
       action: 'initStartParams',
     });
-    if (this.pausedEvents[day] !== true) {
+    if (!this.pausedEvents[day]) {
       this.pausedEvents[day] = true;
       for (const event of events) {
         const eventID = event.event_id;
         const data = await requestData(eventUrl(eventID), query);
         const item = this.prepareEventItem(data, eventID);
         await EventsData.findOneAndUpdate({ eventID }, item, { upsert: true });
-        setTimeout(() => this.resetEventsPause(day), requestEventsDataPause);
       }
+      setTimeout(() => this.resetEventsPause(day), requestEventsDataPause);
     }
   },
   async prepareEventItem(data, eventID) {
