@@ -1,7 +1,9 @@
 const Webdriver = require('selenium-webdriver');
 const chromeDriver = require('selenium-webdriver/chrome');
 const { path } = require('chromedriver');
-const { portalUrl, eventsUrl } = require('managers/events/constants');
+const {
+  portalUrl, eventsUrl, portalLogin, portalPass,
+} = require('managers/events/constants');
 const { Options } = chromeDriver;
 const { By, until } = Webdriver;
 const log = require('utils/log')(module);
@@ -27,9 +29,9 @@ const setCookies = async () => {
     .build();
   await driver.get(portalUrl);
   const loginElem = await driver.wait(until.elementLocated(By.css('*[id="logonuidfield"]')));
-  loginElem.sendKeys('asp-pts@ln.rosenergoatom.ru');
+  loginElem.sendKeys(portalLogin);
   const passElem = await driver.wait(until.elementLocated(By.css('*[id="logonpassfield"]')));
-  passElem.sendKeys('Defender');
+  passElem.sendKeys(portalPass);
   const buttonElem = await driver.wait(until.elementLocated(By.css('*[name="uidPasswordLogon"]')));
   buttonElem.click();
   await driver.wait(until.elementLocated(By.css('*[id="contentAreaFrame"]')));
