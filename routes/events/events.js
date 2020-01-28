@@ -99,13 +99,16 @@ const getCurrentWeekEvents = async (req, res) => {
     {
       $group: {
         _id: '$yearMonthDay',
+        dateStart: {
+          $first: '$dateStart',
+        },
         events: {
           $addToSet: '$$ROOT',
         },
       },
     }, {
       $sort: {
-        _id: 1,
+        dateStart: 1,
       },
     },
   ]);

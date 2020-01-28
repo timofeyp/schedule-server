@@ -91,7 +91,7 @@ const eventsDataManager = {
       for (const event of events) {
         const eventID = event.event_id;
         const data = await requestData(eventUrl(eventID), query);
-        const item = this.prepareEventItem(data, eventID);
+        const item = await this.prepareEventItem(data, eventID);
         await EventsData.findOneAndUpdate({ eventID }, item, { upsert: true });
       }
       setTimeout(() => this.resetEventsPause(day), requestEventsDataPause);
@@ -101,7 +101,7 @@ const eventsDataManager = {
     const pattern = data.event_name.replace(/[^A-zА-я0-9]/gmi, '\\W');
     await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(pattern, 'i') } }, { name: data.event_name }, { upsert: true });
     const room = data.rooms ? data.rooms.filter(el => el.id === data.selected_room) : [];
-    const dateStart = Moment(data.date_start).toDate();
+    const dateStart = Moment(data.date_start).startOf('day').toDate();
     // eslint-disable-next-line radix
     const VCPartsIDs = data.selected_vc_parts ? data.selected_vc_parts.map(el => parseInt(el)) : [];
     const yearMonthDay = Moment(dateStart).format('DD-MM-YYYY');
