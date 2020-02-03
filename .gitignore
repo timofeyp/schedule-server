@@ -9,6 +9,7 @@ stats.json
 npm-debug.log
 .idea
 .vscode
+.nyc_output
 
 # yarn, npm
 *.log

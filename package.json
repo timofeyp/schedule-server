@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test": "cross-env NODE_ENV=development nyc mocha \"./{,!(node_modules)/**/}*.test.js\" --exit"
   },
   "dependencies": {
     "app-root-path": "^3.0.0",
@@ -43,6 +44,9 @@
   },
   "devDependencies": {
     "babel-eslint": "8.2.3",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "cross-env": "^7.0.0",
     "eslint": "4.19.1",
     "eslint-config-airbnb": "16.1.0",
     "eslint-config-airbnb-base": "12.1.0",
@@ -50,10 +54,17 @@
     "eslint-import-resolver-webpack": "0.10.0",
     "eslint-plugin-import": "2.12.0",
     "eslint-plugin-jsx-a11y": "6.0.3",
+    "eslint-plugin-mocha": "^6.2.2",
     "eslint-plugin-prettier": "2.6.0",
-    "eslint-plugin-react": "7.9.1",
+    "istanbul": "^0.4.5",
+    "mocha": "^7.0.1",
     "mongodb": "^3.1.13",
+    "nyc": "^15.0.0",
     "pre-commit": "1.2.2",
-    "prettier": "1.13.5"
+    "prettier": "1.13.5",
+    "rewire": "^4.0.1",
+    "sinon": "^8.1.1",
+    "sinon-chai": "^3.4.0",
+    "supertest": "^4.0.2"
   }
 }
