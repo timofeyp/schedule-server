@@ -110,18 +110,11 @@ const getCurrentWeekEvents = async (req, res) => {
     },
     params,
     {
-      $group: {
-        _id: '$yearMonthDay',
-        dateStart: {
-          $first: '$dateStart',
-        },
-        events: {
-          $addToSet: '$$ROOT',
-        },
-      },
-    }, {
       $sort: {
-        dateStart: 1,
+        dateStart: -1,
+        dateTimeStart: 1,
+        dateTimeEnd: 1,
+        _id: 1,
       },
     },
   ]);
@@ -129,6 +122,7 @@ const getCurrentWeekEvents = async (req, res) => {
 };
 
 const getEventData = async (req, res) => {
+  const populateConfirms = req.user && req.user.isAdmin ? populateConfirmedUsers : {};
   const event = req.isAuthenticated() ? await EventsData.aggregate([
     {
       $match: {
@@ -167,6 +161,7 @@ const getEventData = async (req, res) => {
         },
       },
     },
+    populateConfirms,
   ]) : await EventsData.find({
     // eslint-disable-next-line radix
     _id: ObjectId(req.params.id),

@@ -17,8 +17,8 @@ const requestedDays = {};
 const eventsWorker = async () => {
   try {
     await intervalWork(setCookies, setCookiesPeriod);
-    // await intervalWork(requestToday, todayEventsRequestPeriod);
-    // weekEventsRequest();
+    await intervalWork(requestToday, todayEventsRequestPeriod);
+    weekEventsRequest();
   } catch (e) {
     log.error(e);
   }
@@ -101,7 +101,9 @@ const eventsDataManager = {
     const pattern = data.event_name.replace(/[^A-zА-я0-9]/gmi, '\\W');
     await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(pattern, 'i') } }, { name: data.event_name }, { upsert: true });
     const room = data.rooms ? data.rooms.filter(el => el.id === data.selected_room) : [];
-    const dateStart = Moment(data.date_start).startOf('day').toDate();
+    const dateStart = Moment(data.date_start).utcOffset(0).startOf('day').toDate();
+    const dateTimeStart = Moment(data.date_start).utcOffset(0).hours(data.HStart).minutes(data.MStart).toDate();
+    const dateTimeEnd = Moment(data.date_start).utcOffset(0).hours(data.HEnd).minutes(data.MEnd).toDate();
     // eslint-disable-next-line radix
     const VCPartsIDs = data.selected_vc_parts ? data.selected_vc_parts.map(el => parseInt(el)) : [];
     const yearMonthDay = Moment(dateStart).format('DD-MM-YYYY');
@@ -120,6 +122,8 @@ const eventsDataManager = {
       room: room[0],
       eventName: data.event_name,
       dateStart,
+      dateTimeStart,
+      dateTimeEnd,
       VCPartsIDs,
       responsibleDept: data.responsible_dept,
       responsibleDisplayname: data.responsible_displayname,

@@ -6,6 +6,8 @@ const EventsData = new Schema({
   room: Object,
   eventName: String,
   dateStart: Date,
+  dateTimeStart: Date,
+  dateTimeEnd: { type: Date, timezone: 'Europe/Moscow' },
   VCPartsIDs: Array,
   responsibleDept: String,
   responsibleDisplayname: String,
