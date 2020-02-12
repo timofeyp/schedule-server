@@ -122,8 +122,7 @@ const getCurrentWeekEvents = async (req, res) => {
 };
 
 const getEventData = async (req, res) => {
-  const populateConfirms = req.user && req.user.isAdmin ? populateConfirmedUsers : {};
-  const event = req.isAuthenticated() ? await EventsData.aggregate([
+  const pipeline = [
     {
       $match: {
         // eslint-disable-next-line radix
@@ -161,8 +160,11 @@ const getEventData = async (req, res) => {
         },
       },
     },
-    populateConfirms,
-  ]) : await EventsData.find({
+  ];
+  if (req.user && req.user.isAdmin) {
+    pipeline.push(populateConfirmedUsers);
+  }
+  const event = req.isAuthenticated() ? await EventsData.aggregate(pipeline) : await EventsData.find({
     // eslint-disable-next-line radix
     _id: ObjectId(req.params.id),
   });
