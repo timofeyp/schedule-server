@@ -50,20 +50,14 @@ const getCurrentWeekEvents = async (req, res) => {
   const params = req.user && req.user.isAdmin ? populateConfirmedUsers : { $match: { isHidden: { $nin: [true] } } };
   const { filter, isVideo, isLocal } = parseQuery(req.query);
 
-  let match = {};
+  let videoMatch = {};
   if (filter && isVideo) {
     const matchVCPartsIDs = {
       VCPartsIDs: {
         $in: filter instanceof Array ? filter.map(e => +e) : [+filter],
       },
     };
-    match = { ...match, ...matchVCPartsIDs };
-  }
-  if (isVideo) {
-    match = { ...match, isVideo };
-  }
-  if (isLocal) {
-    match = { ...match, isLocal };
+    videoMatch = { ...videoMatch, ...matchVCPartsIDs, isVideo };
   }
 
   const events = await EventsData.aggregate([
@@ -73,7 +67,7 @@ const getCurrentWeekEvents = async (req, res) => {
         isLocal,
       },
     }, {
-      $match: match,
+      $match: videoMatch,
     },
     {
       $lookup: {
