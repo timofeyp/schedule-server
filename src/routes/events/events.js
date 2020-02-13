@@ -111,7 +111,7 @@ const getCurrentWeekEvents = async (req, res) => {
     params,
     {
       $sort: {
-        dateStart: -1,
+        dateStart: 1,
         dateTimeStart: 1,
         dateTimeEnd: 1,
         _id: 1,
