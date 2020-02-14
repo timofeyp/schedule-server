@@ -5,9 +5,10 @@ const {
 const Moment = require('moment');
 const currentDay = i => Moment().add(i, 'day');
 const {
-  eventsUrl, eventUrl, weekEventsRequestPeriod, todayEventsRequestPeriod, increaseDaysArray, requestEventsDataPause, setCookiesPeriod,
+  eventsUrl, eventUrl, weekEventsRequestPeriod, todayEventsRequestPeriod, increaseDaysArray, requestEventsDataPause, setCookiesPeriod, hideDoublesPeriod,
 } = require('src/managers/events/constants');
 const { requestData } = require('src/managers/events/requestData');
+const hideDoubles = require('src/managers/events/hideDoubles');
 const setCookies = require('src/managers/events/setCookies');
 const log = require('src/utils/log')(module);
 const { intervalWork } = require('src/utils');
@@ -18,7 +19,8 @@ const eventsWorker = async () => {
   try {
     await intervalWork(setCookies, setCookiesPeriod);
     await intervalWork(requestToday, todayEventsRequestPeriod);
-    weekEventsRequest();
+    await intervalWork(requestWeek, weekEventsRequestPeriod);
+    await intervalWork(hideDoubles, hideDoublesPeriod);
   } catch (e) {
     log.error(e);
   }
@@ -26,12 +28,6 @@ const eventsWorker = async () => {
 
 module.exports = eventsWorker;
 
-
-const weekEventsRequest = () => {
-  if (!requestedDays.week) {
-    intervalWork(requestWeek, weekEventsRequestPeriod);
-  }
-};
 
 const requestToday = async () => {
   const eventsQuery = queryString.stringify({
@@ -43,14 +39,16 @@ const requestToday = async () => {
 };
 
 const requestWeek = async () => {
-  requestedDays.week = true;
-  for (const i of increaseDaysArray) {
-    const eventsQuery = queryString.stringify({
-      action: 'refresh',
-      date_refresh: currentDay(i).format('DD.MM.YYYY'),
-    });
-    const eventsResp = await requestData(eventsUrl, eventsQuery);
-    await createEvents(eventsResp, currentDay(i).format('DD-MM-YYYY'));
+  if (!requestedDays.week) {
+    requestedDays.week = true;
+    for (const i of increaseDaysArray) {
+      const eventsQuery = queryString.stringify({
+        action: 'refresh',
+        date_refresh: currentDay(i).format('DD.MM.YYYY'),
+      });
+      const eventsResp = await requestData(eventsUrl, eventsQuery);
+      await createEvents(eventsResp, currentDay(i).format('DD-MM-YYYY'));
+    }
   }
   delete requestedDays.week;
 };
@@ -101,9 +99,9 @@ const eventsDataManager = {
     const pattern = data.event_name.replace(/[^A-zА-я0-9]/gmi, '\\W');
     await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(pattern, 'i') } }, { name: data.event_name }, { upsert: true });
     const room = data.rooms ? data.rooms.filter(el => el.id === data.selected_room) : [];
-    const dateStart = Moment(data.date_start).utcOffset(0).startOf('day').toDate();
-    const dateTimeStart = Moment(data.date_start).utcOffset(0).hours(data.HStart).minutes(data.MStart).toDate();
-    const dateTimeEnd = Moment(data.date_start).utcOffset(0).hours(data.HEnd).minutes(data.MEnd).toDate();
+    const dateStart = Moment(data.date_start).startOf('day').utcOffset(3).toDate();
+    const dateTimeStart = Moment(data.date_start).hours(data.HStart).minutes(data.MStart).utcOffset(3).toDate();
+    const dateTimeEnd = Moment(data.date_start).hours(data.HEnd).minutes(data.MEnd).utcOffset(3).toDate();
     // eslint-disable-next-line radix
     const VCPartsIDs = data.selected_vc_parts ? data.selected_vc_parts.map(el => parseInt(el)) : [];
     const yearMonthDay = Moment(dateStart).format('DD-MM-YYYY');

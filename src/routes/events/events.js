@@ -11,8 +11,8 @@ const unixWeek = () => ({
 });
 
 const week = () => ({
-  $gte: Moment().hour(0).minute(0).second(0).millisecond(0).toDate(),
-  $lte: Moment().hour(23).hour(23).minute(59).second(59).add(6, 'day').toDate(),
+  $gte: Moment().hour(0).minute(0).second(0).millisecond(0).utcOffset(3).toDate(),
+  $lte: Moment().hour(23).hour(23).minute(59).second(59).add(6, 'day').utcOffset(3).toDate(),
 });
 
 const populateConfirmedUsers = {
@@ -48,26 +48,29 @@ const populateConfirmedUsers = {
 
 const getCurrentWeekEvents = async (req, res) => {
   const params = req.user && req.user.isAdmin ? populateConfirmedUsers : { $match: { isHidden: { $nin: [true] } } };
-  const { filter, isVideo, isLocal } = parseQuery(req.query);
+  const { filter, isConcern, isLocal } = parseQuery(req.query);
 
   let videoMatch = {};
-  if (filter && isVideo) {
+  if (filter && isConcern) {
     const matchVCPartsIDs = {
       VCPartsIDs: {
         $in: filter instanceof Array ? filter.map(e => +e) : [+filter],
       },
     };
-    videoMatch = { ...videoMatch, ...matchVCPartsIDs, isVideo };
+    videoMatch = {
+      ...videoMatch, ...matchVCPartsIDs, isVideo: true, isLocal: { $nin: [true] },
+    };
   }
+
+  const matchByEventsType = isLocal ? { isLocal } : videoMatch;
 
   const events = await EventsData.aggregate([
     {
       $match: {
         dateStart: week(),
-        isLocal,
       },
     }, {
-      $match: videoMatch,
+      $match: matchByEventsType,
     },
     {
       $lookup: {
@@ -253,13 +256,13 @@ const updateEvent = async (req, res) => {
   const { _id } = req.body;
   req.params.id = _id;
   delete req.body._id;
-  await EventsData.findOneAndUpdate({ _id: ObjectId(_id) }, req.body, { new: true });
+  await EventsData.findOneAndUpdate({ _id: ObjectId(_id) }, { ...req.body, isUpdated: true }, { new: true });
   const event = await getEventData(req);
   return res.json(event);
 };
 
 const createEvent = async (req, res) => {
-  const event = await EventsData.create({ ...req.body, isHidden: !req.user.isAdmin });
+  const event = await EventsData.create({ ...req.body, isHidden: !req.user.isAdmin, isUpdated: true });
   if (!req.user.isAdmin) {
     await LocalConfirmations.findOneAndUpdate({ eventID: event._id, userID: req.user._id }, {
       eventID: event._id, user: req.user._id, date: Moment().utc(true).toISOString(),
@@ -278,5 +281,6 @@ module.exports = {
   getVcParts,
   updateEvent,
   createEvent,
+  week,
 };
 
