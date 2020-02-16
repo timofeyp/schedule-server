@@ -5,7 +5,7 @@ const { isEmpty, difference } = require('lodash');
 
 const findEvents = async (date) => {
   const actualEventsDocument = await Events.findOne({ date });
-  const currentEventsDocuments = await EventsData.find({ yearMonthDay: date });
+  const currentEventsDocuments = await EventsData.find({ yearMonthDay: date, isManualCreated: { $nin: [true] } });
   if (actualEventsDocument && currentEventsDocuments) {
     const actualEvents = actualEventsDocument.toObject().events;
     const currentEvents = currentEventsDocuments.map(event => event.toObject());

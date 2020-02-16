@@ -26,6 +26,7 @@ const EventsData = new Schema({
   isLocal: Boolean,
   isUpdated: Boolean,
   isPossiblyCanceled: Boolean,
+  isManualCreated: Boolean,
 }, { toJSON: { virtuals: true } });
 
 EventsData.virtual('confirm', {

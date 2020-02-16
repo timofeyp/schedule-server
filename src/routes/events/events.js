@@ -262,7 +262,9 @@ const updateEvent = async (req, res) => {
 };
 
 const createEvent = async (req, res) => {
-  const event = await EventsData.create({ ...req.body, isHidden: !req.user.isAdmin, isUpdated: true });
+  const event = await EventsData.create({
+    ...req.body, isHidden: !req.user.isAdmin, isUpdated: true, isManualCreated: true,
+  });
   if (!req.user.isAdmin) {
     await LocalConfirmations.findOneAndUpdate({ eventID: event._id, userID: req.user._id }, {
       eventID: event._id, user: req.user._id, date: Moment().utc(true).toISOString(),
