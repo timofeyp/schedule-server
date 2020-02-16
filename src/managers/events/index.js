@@ -9,6 +9,7 @@ const {
 } = require('src/managers/events/constants');
 const { requestData } = require('src/managers/events/requestData');
 const hideDoubles = require('src/managers/events/hideDoubles');
+const markCanceled = require('src/managers/events/markCanceled');
 const setCookies = require('src/managers/events/setCookies');
 const log = require('src/utils/log')(module);
 const { intervalWork } = require('src/utils');
@@ -28,45 +29,43 @@ const eventsWorker = async () => {
 
 module.exports = eventsWorker;
 
-
-const requestToday = async () => {
+const requestEvents = async (dayShift) => {
   const eventsQuery = queryString.stringify({
     action: 'refresh',
-    date_refresh: currentDay(0).format('DD.MM.YYYY'),
+    date_refresh: currentDay(dayShift).format('DD.MM.YYYY'),
   });
   const eventsResp = await requestData(eventsUrl, eventsQuery);
-  createEvents(eventsResp, currentDay(0).format('DD-MM-YYYY'));
+  await createEvents(eventsResp, currentDay(dayShift).format('DD-MM-YYYY'));
 };
+
+
+const requestToday = async () => requestEvents(0);
 
 const requestWeek = async () => {
   if (!requestedDays.week) {
     requestedDays.week = true;
     for (const i of increaseDaysArray) {
-      const eventsQuery = queryString.stringify({
-        action: 'refresh',
-        date_refresh: currentDay(i).format('DD.MM.YYYY'),
-      });
-      const eventsResp = await requestData(eventsUrl, eventsQuery);
-      await createEvents(eventsResp, currentDay(i).format('DD-MM-YYYY'));
+      await requestEvents(i);
     }
   }
   delete requestedDays.week;
 };
 
-const createEvents = (resp, day) => new Promise(async (res, rej) => {
-  if (resp.events && resp.events.length && !requestedDays[day]) {
-    requestedDays[day] = true;
+const createEvents = (resp, date) => new Promise(async (res, rej) => {
+  if (resp.events && resp.events.length && !requestedDays[date]) {
+    requestedDays[date] = true;
     const vcevents = resp.events.filter(event => event.vc_required);
     try {
       await Events.findOneAndUpdate({
-        date: day,
+        date,
       }, {
-        date: day,
+        date,
         events: vcevents,
       }, { upsert: true });
-      await eventsDataManager.requestEventsData(vcevents, day);
+      await eventsDataManager.requestEventsData(vcevents, date);
+      await markCanceled(date);
       res(vcevents);
-      delete requestedDays[day];
+      delete requestedDays[date];
     } catch (e) {
       rej(e);
     }

@@ -10,6 +10,16 @@ const options = {
     colorize: false,
     timestamp: true,
   },
+  errorsFile: {
+    level: 'error',
+    filename: `${appRoot}/logs/errors.log`,
+    handleExceptions: true,
+    json: true,
+    maxsize: 25242880, // 25MB
+    maxFiles: 5,
+    colorize: false,
+    timestamp: true,
+  },
   console: {
     level: 'debug',
     handleExceptions: true,
