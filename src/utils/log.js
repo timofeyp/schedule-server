@@ -18,7 +18,7 @@ const getLogger = (module) => {
     transports: [
       new winston.transports.File(options.file),
       new winston.transports.Console({ ...options.console, label: path }),
-      new winston.transports.File({ ...options.errorsFile, level: 'error', label: path }),
+      new winston.transports.File({ ...options.errorsFile, label: path }),
     ],
   });
 };

@@ -11,7 +11,7 @@ const options = {
     timestamp: true,
   },
   errorsFile: {
-    level: 'debug',
+    level: 'error',
     filename: `${appRoot}/logs/errors.log`,
     handleExceptions: true,
     json: true,
