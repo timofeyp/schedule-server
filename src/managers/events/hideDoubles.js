@@ -8,10 +8,10 @@ const log = require('src/utils/log')(module);
 const findDoubles = (events) => {
   if (Array.isArray(events)) {
     const result = {};
-    const checkEventDoubles = event => checkDoubles(events, ['eventName', 'timeStart', 'timeEnd'], [event.eventName, event.timeStart, event.timeEnd]);
+    const checkEventDoubles = event => checkDoubles(events, ['eventName', 'timeStart', 'timeEnd', 'yearMonthDay'], [event.eventName, event.timeStart, event.timeEnd, event.yearMonthDay]);
     events.forEach((event) => {
       const isEventHaveDoubles = checkEventDoubles(event);
-      const doublesKey = event.eventName + event.timeStart + event.timeEnd;
+      const doublesKey = event.eventName + event.timeStart + event.timeEnd + event.yearMonthDay;
       if (!result[doublesKey] && isEventHaveDoubles) {
         result[doublesKey] = [event];
       } else if (isEventHaveDoubles) {
