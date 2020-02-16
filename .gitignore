@@ -15,4 +15,4 @@ npm-debug.log
 *.log
 package-lock.json
 
-/logs
+logs
