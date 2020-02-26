@@ -48,7 +48,9 @@ const requestToday = async () => requestEvents(0);
 const requestWeek = async () => {
   if (!requestedDays.week) {
     requestedDays.week = true;
+    // eslint-disable-next-line no-restricted-syntax
     for (const i of increaseDaysArray) {
+      // eslint-disable-next-line no-await-in-loop
       await requestEvents(i);
     }
   }
@@ -129,7 +131,7 @@ const eventsDataManager = {
       .toDate();
     // eslint-disable-next-line radix
     const VCPartsIDs = data.selected_vc_parts
-      ? data.selected_vc_parts.map(el => parseInt(el))
+      ? data.selected_vc_parts.map(el => parseInt(el, 10))
       : [];
     const yearMonthDay = Moment(dateStart).format('DD-MM-YYYY');
     const timeStart = `${data.HStart}:${

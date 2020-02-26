@@ -39,6 +39,8 @@ module.exports = {
     'arrow-body-style': [2, 'as-needed'],
     'class-methods-use-this': 0,
     'no-underscore-dangle': 0,
+    'no-await-in-loop': 0,
+    'no-restricted-syntax': 0,
     'comma-dangle': [2, 'always-multiline'],
     indent: [
       2,
