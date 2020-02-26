@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router({});
 const {
-  getCurrentWeekEvents, getEventData, getSelectedVcParts, getVcParts, updateEvent, createEvent,
+  getCurrentWeekEvents,
+  getEventData,
+  getSelectedVcParts,
+  getVcParts,
+  updateEvent,
+  createEvent,
 } = require('src/routes/events/events');
-const {
-  localConfirmEvent,
-} = require('src/routes/events/eventsConfirmations');
-const {
-  getNames,
-} = require('src/routes/events/eventsData');
+const { localConfirmEvent } = require('src/routes/events/events-confirmations');
+const { getNames } = require('src/routes/events/event-data');
 const isAuth = require('src/routes/middlewares/check-authenticated');
 const isAdmin = require('src/routes/middlewares/check-authenticated');
 

@@ -10,6 +10,7 @@ const User = new Schema({
   name: String,
   mail: String,
   isAdmin: Boolean,
+  hash: String,
 });
 
 module.exports = mongoose.model('user', User);

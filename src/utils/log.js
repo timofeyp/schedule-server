@@ -3,9 +3,11 @@ const { format } = winston;
 const options = require('config/winston');
 const moment = require('moment');
 
-
-const getLogger = (module) => {
-  const path = module.filename.split('/').slice(-2).join('/');
+const getLogger = module => {
+  const path = module.filename
+    .split('/')
+    .slice(-2)
+    .join('/');
   return winston.createLogger({
     format: format.combine(
       format.errors({ stack: true }),

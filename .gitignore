@@ -16,3 +16,5 @@ npm-debug.log
 package-lock.json
 
 /logs
+
+/.nyc_output

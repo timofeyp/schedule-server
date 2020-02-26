@@ -27,6 +27,7 @@
     "usernameField": "username",
     "passwordField": "password",
     "handleErrorsAsFailures": true,
+    "passReqToCallback": true,
     "server":{
       "url": "ldap://10.3.6.26:389",
       "bindDN": "CN=сuadmin,CN=Users,DC=ln,DC=rosenergoatom,DC=ru",
@@ -34,5 +35,8 @@
       "searchBase": "OU=laes.ru,DC=ln,DC=rosenergoatom,DC=ru",
       "searchFilter": "(name={{username}})"
     }
+  },
+  "cryptr": {
+    "secret": "K3kJM4rjt-8FK3kJM4-ZQv5zMAKG"
   }
 }

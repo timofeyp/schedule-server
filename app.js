@@ -13,6 +13,7 @@ const app = express();
 const eventsInitialization = require('src/managers/events');
 const { User } = require('src/db');
 const routes = require('src/routes');
+const crypt = require('src/utils/crypt');
 
 expressInitialization();
 passportInitialization();
@@ -22,7 +23,6 @@ eventsInitialization();
 
 module.exports = app;
 
-
 function expressInitialization() {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: false }));
@@ -30,18 +30,20 @@ function expressInitialization() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
-  app.use(session({
-    secret: config.get('session.secret'),
-    key: config.get('session.key'),
-    resave: config.get('session.resave'),
-    saveUninitialized: config.get('session.saveUninitialized'),
-    cookie: config.get('session.cookie'),
-    rolling: config.get('session.rolling'),
-    store: new MongoStore({
-      mongooseConnection: mongoose.connection,
-      stringify: false,
+  app.use(
+    session({
+      secret: config.get('session.secret'),
+      key: config.get('session.key'),
+      resave: config.get('session.resave'),
+      saveUninitialized: config.get('session.saveUninitialized'),
+      cookie: config.get('session.cookie'),
+      rolling: config.get('session.rolling'),
+      store: new MongoStore({
+        mongooseConnection: mongoose.connection,
+        stringify: false,
+      }),
     }),
-  }));
+  );
 }
 
 function passportInitialization() {
@@ -49,18 +51,35 @@ function passportInitialization() {
   app.use(passport.session());
 
   // passport config
-  passport.use(new LdapStrategy(config.get('LDAP'), ((user, done) => {
-    if (user) {
-      return done(null, user);
-    }
-    return done(null, null);
-  })));
+  passport.use(
+    new LdapStrategy(config.get('LDAP'), (req, user, done) => {
+      if (user) {
+        const { password } = req.body;
+        const encryptedPass = crypt.encrypt(password);
+        return done(null, { ...user, hash: encryptedPass });
+      }
+      return done(null, null);
+    }),
+  );
   passport.serializeUser(async (user, done) => {
     const userData = {
-      login: user.cn, company: user.company, departament: user.department, phone: user.telephoneNumber, title: user.title, name: user.displayName, mail: user.mail,
+      login: user.cn,
+      company: user.company,
+      departament: user.department,
+      phone: user.telephoneNumber,
+      title: user.title,
+      name: user.displayName,
+      mail: user.mail,
+      hash: user.hash,
     };
-    const userFromDb = await User.findOneAndUpdate({ login: user.cn }, userData, { upsert: true, new: true });
-    done(null, userFromDb.toObject());
+    const userDocument = await User.findOneAndUpdate(
+      { login: user.cn },
+      userData,
+      { upsert: true, new: true },
+    );
+    const userObject = userDocument.toObject();
+    delete userObject.hash;
+    done(null, userObject);
   });
   passport.deserializeUser((obj, done) => {
     done(null, obj);
