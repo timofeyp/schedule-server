@@ -1,6 +1,6 @@
 const confirmedUsersLookupQuery = {
   $lookup: {
-    from: 'localconfirmations',
+    from: 'local-confirmations',
     let: {
       eventID: '$_id',
     },

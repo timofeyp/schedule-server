@@ -1,4 +1,5 @@
 const { ObjectId } = require('mongodb');
+const confirmedUsersLookupQuery = require('src/db/models/events-data/confirmed-users-lookup-query');
 
 module.exports = req => {
   const pipeline = [
@@ -10,7 +11,7 @@ module.exports = req => {
     },
     {
       $lookup: {
-        from: 'localconfirmations',
+        from: 'local-confirmations',
         localField: 'confirmed',
         foreignField: 'confirmed',
         as: 'confirmed',

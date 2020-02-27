@@ -52,7 +52,7 @@ module.exports = req => {
     },
     {
       $lookup: {
-        from: 'localconfirmations',
+        from: 'local-confirmations',
         localField: 'confirmed',
         foreignField: 'confirmed',
         as: 'confirmed',

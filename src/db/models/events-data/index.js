@@ -1,5 +1,8 @@
 const mongoose = require('src/utils/mongoose');
 const getWeekEventsQuery = require('src/db/models/events-data/get-week-events-query');
+const getEventDataQuery = require('src/db/models/events-data/get-event-data-query');
+const getSelectedVCPartsQuery = require('src/db/models/events-data/get-selected-v-c-parts-query');
+const getVCPartsQuery = require('src/db/models/events-data/get-v-c-parts-query');
 const { Schema } = mongoose;
 
 const EventsData = new Schema(
@@ -40,5 +43,8 @@ EventsData.virtual('confirm', {
 });
 
 EventsData.statics.getWeekEventsQuery = getWeekEventsQuery;
+EventsData.statics.getEventDataQuery = getEventDataQuery;
+EventsData.statics.getSelectedVCPartsQuery = getSelectedVCPartsQuery;
+EventsData.statics.getVCPartsQuery = getVCPartsQuery;
 
 module.exports = mongoose.model('events-data', EventsData);

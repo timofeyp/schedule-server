@@ -38,5 +38,8 @@
   },
   "cryptr": {
     "secret": "K3kJM4rjt-8FK3kJM4-ZQv5zMAKG"
+  },
+  "sap": {
+    "url": "http://a:a@saprap.co.rosenergoatom.ru"
   }
 }

@@ -1,12 +1,13 @@
 const ldap = require('ldapjs');
 const log = require('src/utils/log')(module);
+const config = require('config');
 const client = ldap.createClient({
-  url: 'ldap://10.3.6.26:389',
+  url: config.get('LDAP.server.url'),
 });
 
 client.bind(
-  'CN=сuadmin,CN=Users,DC=ln,DC=rosenergoatom,DC=ru',
-  '1QAZse4',
+  config.get('LDAP.server.bindDN'),
+  config.get('LDAP.server.bindCredentials'),
   err => {
     if (err) {
       log.error(err);

@@ -17,4 +17,4 @@ LocalConfirmations.virtual('userData', {
   justOne: true,
 });
 
-module.exports = mongoose.model('localConfirmations', LocalConfirmations);
+module.exports = mongoose.model('local-confirmations', LocalConfirmations);

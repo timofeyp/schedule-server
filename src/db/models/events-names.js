@@ -5,4 +5,4 @@ const eventsNames = new Schema({
   name: String,
 });
 
-module.exports = mongoose.model('eventsNames', eventsNames);
+module.exports = mongoose.model('events-names', eventsNames);

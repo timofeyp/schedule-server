@@ -1,5 +1,5 @@
 const { EventsData } = require('src/db');
-const { week } = require('src/routes/events/events');
+const { dateWeek } = require('src/db/models/events-data/constants');
 const { isEmpty } = require('lodash');
 const log = require('src/utils/log')(module);
 
@@ -45,7 +45,7 @@ const hideDoubles = async events => {
 
 const handleDoubles = async () => {
   const events = await EventsData.find({
-    dateStart: week(),
+    dateStart: dateWeek,
     isUpdated: { $nin: [true] },
   });
   const doubles = findDoubles(events);
