@@ -27,6 +27,7 @@ const createEvent = async (req, res) => {
     ...req.body,
     isHidden: !req.user.isAdmin,
     isUpdated: true,
+    isManualCreated: true,
   });
   if (!req.user.isAdmin) {
     await LocalConfirmations.findOneAndUpdate(

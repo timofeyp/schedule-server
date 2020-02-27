@@ -9,8 +9,8 @@ const findDoubles = events => {
     const checkEventDoubles = event =>
       checkDoubles(
         events,
-        ['eventName', 'timeStart', 'timeEnd'],
-        [event.eventName, event.timeStart, event.timeEnd],
+        ['eventName', 'timeStart', 'timeEnd', 'yearMonthDay'],
+        [event.eventName, event.timeStart, event.timeEnd, event.yearMonthDay],
       );
     events.forEach(event => {
       const isEventHaveDoubles = checkEventDoubles(event);
