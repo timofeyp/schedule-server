@@ -15,7 +15,7 @@ const getConcernEventMatchQuery = (filter, isConcern) => {
       isLocal: { $nin: [true] },
     };
   }
-  return {};
+  return { isLocal: { $nin: [true] } };
 };
 
 const getMatchQuery = req => {
@@ -42,12 +42,8 @@ module.exports = req => {
   const pipeline = [
     {
       $match: {
-        $and: [
-          {
-            dateStart: dateWeek,
-          },
-          { ...getMatchQuery(req) },
-        ],
+        dateStart: dateWeek,
+        ...getMatchQuery(req),
       },
     },
     {
