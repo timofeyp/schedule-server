@@ -1,5 +1,6 @@
 const { dateWeek } = require('src/db/models/events-data/constants');
 const confirmedUsersLookupQuery = require('src/db/models/events-data/confirmed-users-lookup-query');
+const VCPartsQuery = require('src/db/models/events-data/v-c-parts-lookup-query');
 const parseQuery = require('src/utils/parse-get-query');
 
 const getConcernEventMatchQuery = (filter, isConcern) => {
@@ -54,6 +55,7 @@ module.exports = req => {
         as: 'confirmed',
       },
     },
+    VCPartsQuery,
     {
       $addFields: {
         confirmed: {

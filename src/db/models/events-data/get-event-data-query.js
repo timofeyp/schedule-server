@@ -1,5 +1,6 @@
 const { ObjectId } = require('mongodb');
 const confirmedUsersLookupQuery = require('src/db/models/events-data/confirmed-users-lookup-query');
+const VCPartsQuery = require('src/db/models/events-data/v-c-parts-lookup-query');
 
 module.exports = req => {
   const pipeline = [
@@ -17,6 +18,7 @@ module.exports = req => {
         as: 'confirmed',
       },
     },
+    VCPartsQuery,
     {
       $addFields: {
         confirmed: {

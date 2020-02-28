@@ -1,18 +1,6 @@
 const { EventsNames, EventsData } = require('src/db');
 const { ObjectId } = require('mongodb');
 
-const getVCParts = async (req, res) => {
-  const VCParts = await EventsData.aggregate(EventsData.getVCPartsQuery());
-  return res.json(VCParts);
-};
-
-const getSelectedVcParts = async (req, res) => {
-  const VCParts = await EventsData.aggregate(
-    EventsData.getSelectedVCPartsQuery(),
-  );
-  return res.json(VCParts);
-};
-
 const getEventData = async (req, res) => {
   const event = req.isAuthenticated()
     ? await EventsData.aggregate(EventsData.getEventDataQuery(req))
@@ -34,6 +22,4 @@ const getNames = async (req, res) => {
 module.exports = {
   getNames,
   getEventData,
-  getSelectedVcParts,
-  getVCParts,
 };

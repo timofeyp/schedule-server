@@ -16,6 +16,7 @@ const { requestData } = require('src/managers/events/request-data');
 const hideDoubles = require('src/managers/events/hide-doubles');
 const markCanceled = require('src/managers/events/mark-canceled');
 const setCookies = require('src/managers/events/set-cookies');
+const storeVCParts = require('src/managers/events/store-v-c-parts');
 const log = require('src/utils/log')(module);
 const { intervalWork } = require('src/utils');
 
@@ -61,7 +62,7 @@ const createEvents = (resp, date) =>
   new Promise(async (res, rej) => {
     if (resp.events && resp.events.length && !requestedDays[date]) {
       requestedDays[date] = true;
-      const vcevents = resp.events.filter(event => event.vc_required);
+      const events = resp.events.filter(event => event.vc_required);
       try {
         await Events.findOneAndUpdate(
           {
@@ -69,13 +70,13 @@ const createEvents = (resp, date) =>
           },
           {
             date,
-            events: vcevents,
+            events,
           },
           { upsert: true },
         );
-        await eventsDataManager.requestEventsData(vcevents, date);
+        await eventsDataManager.requestEventsData(events, date);
         await markCanceled(date);
-        res(vcevents);
+        res(events);
         delete requestedDays[date];
       } catch (e) {
         rej(e);
@@ -99,6 +100,7 @@ const eventsDataManager = {
       for (const event of events) {
         const eventID = event.event_id;
         const data = await requestData(eventUrl(eventID), query);
+        await storeVCParts(data.vc_parts);
         const item = await this.prepareEventItem(data, eventID);
         await EventsData.findOneAndUpdate({ eventID }, item, { upsert: true });
       }
@@ -138,14 +140,6 @@ const eventsDataManager = {
       data.MStart === 0 ? '00' : data.MStart
     }`;
     const timeEnd = `${data.HEnd}:${data.MEnd === 0 ? '00' : data.MEnd}`;
-    const VCPartsArr = data.vc_parts.reduce((VCPartsArray, el) => {
-      const groupName = el.group_name;
-      const VCParts = el.vc_parts.filter(i => VCPartsIDs.includes(i.id));
-      if (VCParts.length) {
-        VCPartsArray.push({ groupName, VCParts });
-      }
-      return VCPartsArray;
-    }, []);
     return {
       eventID,
       room: room[0],
@@ -162,7 +156,6 @@ const eventsDataManager = {
       yearMonthDay,
       timeStart,
       timeEnd,
-      VCParts: VCPartsArr,
       additional: data.reqaddpart,
       isVideo: true,
     };

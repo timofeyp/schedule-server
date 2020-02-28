@@ -10,6 +10,7 @@ const portalUrl = `${config.get('sap.url')}/irj/portal`;
 const todayEventsRequestPeriod = 5 * 60 * 1000;
 const weekEventsRequestPeriod = 21 * 60 * 1000;
 const setCookiesPeriod = 24 * 60 * 60 * 1000;
+const storeVCPartsPeriod = 24 * 60 * 60 * 1000;
 const requestEventsDataPause = 20 * 60 * 1000;
 const hideDoublesPeriod = 20 * 60 * 1000;
 const increaseDaysArray = [...Array(7).keys()];
@@ -37,4 +38,5 @@ module.exports = {
   requestHeaders,
   requestEventsDataPause,
   hideDoublesPeriod,
+  storeVCPartsPeriod,
 };
