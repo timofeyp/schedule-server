@@ -30,6 +30,7 @@ const EventsData = new Schema(
     isUpdated: Boolean,
     isPossiblyCanceled: Boolean,
     isManualCreated: Boolean,
+    isPendingForAccept: Boolean,
   },
   { toJSON: { virtuals: true } },
 );

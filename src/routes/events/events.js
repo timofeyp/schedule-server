@@ -1,6 +1,7 @@
-const { EventsData, EventsNames, LocalConfirmations } = require('src/db');
-const Moment = require('moment');
+const { EventsData, EventsNames } = require('src/db');
+const { localConfirmEvent } = require('src/routes/events/events-confirmations');
 const { getEventData } = require('src/routes/events/events-data');
+const createEwsEvents = require('src/managers/ews');
 const { ObjectId } = require('mongodb');
 
 const getCurrentWeekEvents = async (req, res) => {
@@ -25,22 +26,16 @@ const updateEvent = async (req, res) => {
 const createEvent = async (req, res) => {
   const event = await EventsData.create({
     ...req.body,
-    isHidden: !req.user.isAdmin,
     isUpdated: true,
     isManualCreated: true,
+    isPendingForAccept: !req.user.isAdmin,
   });
-  if (!req.user.isAdmin) {
-    await LocalConfirmations.findOneAndUpdate(
-      { eventID: event._id, userID: req.user._id },
-      {
-        eventID: event._id,
-        user: req.user._id,
-        date: Moment()
-          .utc(true)
-          .toISOString(),
-      },
-      { upsert: true },
-    );
+  if (req.body && req.body.ldapUsers) {
+    await createEwsEvents(req);
+  }
+  if (req.user && !req.user.isAdmin) {
+    req.params = { id: event._id };
+    await localConfirmEvent(req);
   }
   const { eventName: name } = req.body;
   const pattern = name.replace(/[^A-zА-я0-9\s]/gim, '\\W');

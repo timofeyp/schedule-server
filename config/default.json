@@ -41,5 +41,8 @@
   },
   "sap": {
     "url": "http://a:a@saprap.co.rosenergoatom.ru"
+  },
+  "EWS": {
+    "host": "https://10.3.6.11"
   }
 }

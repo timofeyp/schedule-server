@@ -19,7 +19,20 @@ const getNames = async (req, res) => {
   return res.json(names);
 };
 
+const localAcceptEvent = async (req, res) => {
+  const { id } = req.params;
+  await EventsData.findOneAndUpdate(
+    { _id: ObjectId(id) },
+    {
+      isPendingForAccept: false,
+    },
+  );
+  const event = await EventsData.aggregate(EventsData.getEventDataQuery(req));
+  return res.json(event[0]);
+};
+
 module.exports = {
   getNames,
   getEventData,
+  localAcceptEvent,
 };

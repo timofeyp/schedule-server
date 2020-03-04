@@ -55,8 +55,10 @@ function passportInitialization() {
     new LdapStrategy(config.get('LDAP'), (req, user, done) => {
       if (user) {
         const { password } = req.body;
-        const encryptedPass = crypt.encrypt(password);
-        return done(null, { ...user, hash: encryptedPass });
+        const { ntHashedPassword, lmHashedPassword } = crypt.hashAndEncryptPass(
+          password,
+        );
+        return done(null, { ...user, ntHashedPassword, lmHashedPassword });
       }
       return done(null, null);
     }),
@@ -65,12 +67,13 @@ function passportInitialization() {
     const userData = {
       login: user.cn,
       company: user.company,
-      departament: user.department,
+      department: user.department,
       phone: user.telephoneNumber,
       title: user.title,
       name: user.displayName,
-      mail: user.mail,
-      hash: user.hash,
+      mail: user.userPrincipalName,
+      ntHashedPassword: user.ntHashedPassword,
+      lmHashedPassword: user.lmHashedPassword,
     };
     const userDocument = await User.findOneAndUpdate(
       { login: user.cn },

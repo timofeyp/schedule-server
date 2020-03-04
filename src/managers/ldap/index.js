@@ -1,45 +1,73 @@
 const ldap = require('ldapjs');
 const log = require('src/utils/log')(module);
 const config = require('config');
-const client = ldap.createClient({
-  url: config.get('LDAP.server.url'),
-});
-
-client.bind(
-  config.get('LDAP.server.bindDN'),
-  config.get('LDAP.server.bindCredentials'),
-  err => {
-    if (err) {
-      log.error(err);
-    }
+const {
+  LDAP: {
+    server: { url, bindDN, bindCredentials, searchBase },
   },
-);
+} = config;
 
-const opts = {
-  filter: '(&(displayName=Пляш*))',
-  scope: 'sub',
-  attributes: ['givenName', 'displayName', 'sn', 'mail', 'department'],
+const attributes = [
+  'givenName',
+  'displayName',
+  'sn',
+  'mail',
+  'userPrincipalName',
+  'department',
+];
+
+const getFilterQuery = searchText =>
+  `(&(displayName=${searchText}*)(userPrincipalName=*@*rosenergoatom.ru))`;
+
+const getSearchOptions = searchText => {
+  const filter = getFilterQuery(searchText);
+  return {
+    filter,
+    attributes,
+    scope: 'sub',
+    paged: {
+      pageSize: 50,
+      pagePause: true,
+    },
+  };
 };
 
-const searchResult = [];
+const searchLDAPUsers = (client, searchOptions, resolve) => {
+  const searchResult = [];
+  client.search(searchBase, searchOptions, (err, res) => {
+    if (err) log.error(err);
+    res.on('searchEntry', entry => searchResult.push(entry.object));
+    res.on('page', () => {
+      resolve(searchResult);
+      client.destroy();
+    });
+    res.on('end', () => {
+      resolve(searchResult);
+      client.destroy();
+    });
+  });
+};
 
-client.search('OU=laes.ru,DC=ln,DC=rosenergoatom,DC=ru', opts, (err, res) => {
-  if (err) {
-    log.error(err);
+class LDAPSearch {
+  constructor() {
+    this.client = ldap.createClient({
+      url,
+    });
   }
+  bindClient() {
+    this.client.bind(bindDN, bindCredentials, err => {
+      if (err) {
+        log.error(err);
+      }
+    });
+  }
+  handleSearchRequest(searchText, resolve) {
+    this.bindClient();
+    const searchOptions = getSearchOptions(searchText);
+    searchLDAPUsers(this.client, searchOptions, resolve);
+  }
+  byText = searchText =>
+    new Promise(resolve => this.handleSearchRequest(searchText, resolve));
+}
 
-  res.on('searchEntry', entry => {
-    searchResult.push(entry.object);
-  });
-  res.on('searchReference', referral => {
-    log.info(`referral: ${referral.uris.join()}`);
-  });
-  // eslint-disable-next-line no-shadow
-  res.on('error', err => {
-    log.error(`error: ${err.message}`);
-  });
-  res.on('end', result => {
-    console.log(searchResult);
-    console.log(`status: ${result.status}`);
-  });
-});
+module.exports = LDAPSearch;

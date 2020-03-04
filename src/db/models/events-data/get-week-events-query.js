@@ -24,8 +24,10 @@ const getMatchQuery = req => {
   const { filter, isConcern, isLocal } = parseQuery(req.query);
   const concernEventMatchQuery = getConcernEventMatchQuery(filter, isConcern);
   const matchByEventsType = isLocal ? { isLocal } : concernEventMatchQuery;
-  const matchHiddenEvents = isAdmin ? {} : { isHidden: { $nin: [true] } };
-  return { ...matchByEventsType, ...matchHiddenEvents };
+  const matchByUserType = isAdmin
+    ? {}
+    : { isHidden: { $nin: [true] }, isPendingForAccept: { $nin: [true] } };
+  return { ...matchByEventsType, ...matchByUserType };
 };
 
 const sortQuery = {

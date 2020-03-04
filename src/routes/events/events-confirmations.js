@@ -15,7 +15,7 @@ const localConfirmEvent = async (req, res) => {
     },
     { upsert: true },
   );
-  return res.status(HttpStatus.NO_CONTENT).end();
+  return res ? res.status(HttpStatus.NO_CONTENT).end() : null;
 };
 
 module.exports = {
