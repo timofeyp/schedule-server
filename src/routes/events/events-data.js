@@ -1,4 +1,5 @@
 const { EventsNames, EventsData } = require('src/db');
+const { isEmpty } = require('lodash');
 const { ObjectId } = require('mongodb');
 const createEwsEvents = require('src/managers/ews');
 
@@ -30,7 +31,7 @@ const localAcceptEvent = async (req, res) => {
   );
   const [event] = await EventsData.aggregate(EventsData.getEventDataQuery(req));
   const { ldapParts } = event;
-  if (ldapParts) {
+  if (!isEmpty(ldapParts)) {
     await createEwsEvents(event);
   }
   return res.send(event);
