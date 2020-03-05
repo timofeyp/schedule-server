@@ -1,16 +1,23 @@
 const queryString = require('query-string');
-const {
-  Events, EventsData, EventsNames,
-} = require('src/db');
+const { Events, EventsData } = require('src/db');
+const updateEventNames = require('src/managers/events/update-events-names');
 const Moment = require('moment');
 const currentDay = i => Moment().add(i, 'day');
 const {
-  eventsUrl, eventUrl, weekEventsRequestPeriod, todayEventsRequestPeriod, increaseDaysArray, requestEventsDataPause, setCookiesPeriod, hideDoublesPeriod,
+  eventsUrl,
+  eventUrl,
+  weekEventsRequestPeriod,
+  todayEventsRequestPeriod,
+  increaseDaysArray,
+  requestEventsDataPause,
+  setCookiesPeriod,
+  hideDoublesPeriod,
 } = require('src/managers/events/constants');
-const { requestData } = require('src/managers/events/requestData');
-const hideDoubles = require('src/managers/events/hideDoubles');
-const markCanceled = require('src/managers/events/markCanceled');
-const setCookies = require('src/managers/events/setCookies');
+const { requestData } = require('src/managers/events/request-data');
+const hideDoubles = require('src/managers/events/hide-doubles');
+const markCanceled = require('src/managers/events/mark-canceled');
+const setCookies = require('src/managers/events/set-cookies');
+const storeVCParts = require('src/managers/events/store-v-c-parts');
 const log = require('src/utils/log')(module);
 const { intervalWork } = require('src/utils');
 
@@ -29,7 +36,7 @@ const eventsWorker = async () => {
 
 module.exports = eventsWorker;
 
-const requestEvents = async (dayShift) => {
+const requestEvents = async dayShift => {
   const eventsQuery = queryString.stringify({
     action: 'refresh',
     date_refresh: currentDay(dayShift).format('DD.MM.YYYY'),
@@ -38,41 +45,47 @@ const requestEvents = async (dayShift) => {
   await createEvents(eventsResp, currentDay(dayShift).format('DD-MM-YYYY'));
 };
 
-
 const requestToday = async () => requestEvents(0);
 
 const requestWeek = async () => {
   if (!requestedDays.week) {
     requestedDays.week = true;
+    // eslint-disable-next-line no-restricted-syntax
     for (const i of increaseDaysArray) {
+      // eslint-disable-next-line no-await-in-loop
       await requestEvents(i);
     }
   }
   delete requestedDays.week;
 };
 
-const createEvents = (resp, date) => new Promise(async (res, rej) => {
-  if (resp.events && resp.events.length && !requestedDays[date]) {
-    requestedDays[date] = true;
-    const vcevents = resp.events.filter(event => event.vc_required);
-    try {
-      await Events.findOneAndUpdate({
-        date,
-      }, {
-        date,
-        events: vcevents,
-      }, { upsert: true });
-      await eventsDataManager.requestEventsData(vcevents, date);
-      await markCanceled(date);
-      res(vcevents);
-      delete requestedDays[date];
-    } catch (e) {
-      rej(e);
+const createEvents = (resp, date) =>
+  new Promise(async (res, rej) => {
+    if (resp.events && resp.events.length && !requestedDays[date]) {
+      requestedDays[date] = true;
+      const events = resp.events.filter(event => event.vc_required);
+      try {
+        await Events.findOneAndUpdate(
+          {
+            date,
+          },
+          {
+            date,
+            events,
+          },
+          { upsert: true },
+        );
+        await eventsDataManager.requestEventsData(events, date);
+        await markCanceled(date);
+        res(events);
+        delete requestedDays[date];
+      } catch (e) {
+        rej(e);
+      }
+    } else if (resp.events.length === 0) {
+      res([]);
     }
-  } else if (resp.events.length === 0) {
-    res([]);
-  }
-});
+  });
 
 const eventsDataManager = {
   pausedEvents: {},
@@ -88,6 +101,7 @@ const eventsDataManager = {
       for (const event of events) {
         const eventID = event.event_id;
         const data = await requestData(eventUrl(eventID), query);
+        await storeVCParts(data.vc_parts);
         const item = await this.prepareEventItem(data, eventID);
         await EventsData.findOneAndUpdate({ eventID }, item, { upsert: true });
       }
@@ -95,25 +109,33 @@ const eventsDataManager = {
     }
   },
   async prepareEventItem(data, eventID) {
-    const pattern = data.event_name.replace(/[^A-zА-я0-9]/gmi, '\\W');
-    await EventsNames.findOneAndUpdate({ name: { $regex: new RegExp(pattern, 'i') } }, { name: data.event_name }, { upsert: true });
-    const room = data.rooms ? data.rooms.filter(el => el.id === data.selected_room) : [];
-    const dateStart = Moment(data.date_start).startOf('day').utcOffset(3).toDate();
-    const dateTimeStart = Moment(data.date_start).hours(data.HStart).minutes(data.MStart).utcOffset(3).toDate();
-    const dateTimeEnd = Moment(data.date_start).hours(data.HEnd).minutes(data.MEnd).utcOffset(3).toDate();
+    await updateEventNames(data.event_name);
+    const room = data.rooms
+      ? data.rooms.filter(el => el.id === data.selected_room)
+      : [];
+    const dateStart = Moment(data.date_start)
+      .startOf('day')
+      .utcOffset(3)
+      .toDate();
+    const dateTimeStart = Moment(data.date_start)
+      .hours(data.HStart)
+      .minutes(data.MStart)
+      .utcOffset(3)
+      .toDate();
+    const dateTimeEnd = Moment(data.date_start)
+      .hours(data.HEnd)
+      .minutes(data.MEnd)
+      .utcOffset(3)
+      .toDate();
     // eslint-disable-next-line radix
-    const VCPartsIDs = data.selected_vc_parts ? data.selected_vc_parts.map(el => parseInt(el)) : [];
+    const VCPartsIDs = data.selected_vc_parts
+      ? data.selected_vc_parts.map(el => parseInt(el, 10))
+      : [];
     const yearMonthDay = Moment(dateStart).format('DD-MM-YYYY');
-    const timeStart = `${data.HStart}:${data.MStart === 0 ? '00' : data.MStart}`;
+    const timeStart = `${data.HStart}:${
+      data.MStart === 0 ? '00' : data.MStart
+    }`;
     const timeEnd = `${data.HEnd}:${data.MEnd === 0 ? '00' : data.MEnd}`;
-    const VCPartsArr = data.vc_parts.reduce((VCPartsArray, el) => {
-      const groupName = el.group_name;
-      const VCParts = el.vc_parts.filter(i => VCPartsIDs.includes(i.id));
-      if (VCParts.length) {
-        VCPartsArray.push({ groupName, VCParts });
-      }
-      return VCPartsArray;
-    }, []);
     return {
       eventID,
       room: room[0],
@@ -130,10 +152,8 @@ const eventsDataManager = {
       yearMonthDay,
       timeStart,
       timeEnd,
-      VCParts: VCPartsArr,
       additional: data.reqaddpart,
       isVideo: true,
     };
   },
 };
-

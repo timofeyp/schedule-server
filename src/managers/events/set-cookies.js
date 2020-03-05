@@ -2,12 +2,15 @@ const Webdriver = require('selenium-webdriver');
 const chromeDriver = require('selenium-webdriver/chrome');
 const { path } = require('chromedriver');
 const {
-  portalUrl, eventsUrl, portalLogin, portalPass,
+  portalUrl,
+  eventsUrl,
+  portalLogin,
+  portalPass,
 } = require('src/managers/events/constants');
 const { Options } = chromeDriver;
 const { By, until } = Webdriver;
 const log = require('src/utils/log')(module);
-const { jar } = require('src/managers/events/requestData');
+const { jar } = require('src/managers/events/request-data');
 
 const options = new Options();
 options.addArguments('start-maximized'); // open Browser in maximized mode
@@ -28,16 +31,22 @@ const setCookies = async () => {
     .setChromeOptions(options)
     .build();
   await driver.get(portalUrl);
-  const loginElem = await driver.wait(until.elementLocated(By.css('*[id="logonuidfield"]')));
+  const loginElem = await driver.wait(
+    until.elementLocated(By.css('*[id="logonuidfield"]')),
+  );
   loginElem.sendKeys(portalLogin);
-  const passElem = await driver.wait(until.elementLocated(By.css('*[id="logonpassfield"]')));
+  const passElem = await driver.wait(
+    until.elementLocated(By.css('*[id="logonpassfield"]')),
+  );
   passElem.sendKeys(portalPass);
-  const buttonElem = await driver.wait(until.elementLocated(By.css('*[name="uidPasswordLogon"]')));
+  const buttonElem = await driver.wait(
+    until.elementLocated(By.css('*[name="uidPasswordLogon"]')),
+  );
   buttonElem.click();
   await driver.wait(until.elementLocated(By.css('*[id="contentAreaFrame"]')));
   const cookies = await driver.manage().getCookies();
   await driver.quit();
-  cookies.forEach((el) => {
+  cookies.forEach(el => {
     jar.setCookie(`${el.name}=${el.value}`, eventsUrl);
   });
   log.info('cookies set');

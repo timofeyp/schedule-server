@@ -2,7 +2,7 @@ const log = require('src/utils/log')(module);
 
 const delay = time => new Promise(res => setTimeout(() => res(), time));
 
-const tryCatchWrapper = async (func) => {
+const tryCatchWrapper = async func => {
   try {
     await func();
   } catch (e) {
@@ -16,5 +16,6 @@ const intervalWork = async (func, time) => {
 };
 
 module.exports = {
-  delay, intervalWork,
+  delay,
+  intervalWork,
 };

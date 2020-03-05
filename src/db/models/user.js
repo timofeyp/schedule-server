@@ -4,12 +4,14 @@ const { Schema } = mongoose;
 const User = new Schema({
   login: String,
   company: String,
-  departament: String,
+  department: String,
   phone: String,
   title: String,
   name: String,
   mail: String,
   isAdmin: Boolean,
+  ntHashedPassword: String,
+  lmHashedPassword: String,
 });
 
 module.exports = mongoose.model('user', User);
