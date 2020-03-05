@@ -1,4 +1,5 @@
 const { EventsData } = require('src/db');
+const { isEmpty } = require('lodash');
 const updateEventNames = require('src/managers/events/update-events-names');
 const { localConfirmEvent } = require('src/routes/events/events-confirmations');
 const { getEventData } = require('src/routes/events/events-data');
@@ -26,7 +27,7 @@ const updateEvent = async (req, res) => {
 
 const createEvent = async (req, res) => {
   const { isAdmin, _id: ownerUserId } = req.user;
-  const { eventName } = req.body;
+  const { eventName, ldapParts } = req.body;
   const event = await EventsData.create({
     ...req.body,
     isUpdated: true,
@@ -38,7 +39,7 @@ const createEvent = async (req, res) => {
   const [result] = await EventsData.aggregate(
     EventsData.getEventDataQuery(req),
   );
-  const isEws = req.body.ldapParts && isAdmin;
+  const isEws = !isEmpty(ldapParts) && isAdmin;
   if (isEws) {
     await createEwsEvents(event);
   }
