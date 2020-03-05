@@ -22,6 +22,8 @@ const EventsData = new Schema(
     timeStart: { type: String, required: true },
     timeEnd: { type: String, required: true },
     additional: Array,
+    ldapParts: Array,
+    ownerUserId: { type: Schema.Types.ObjectId, ref: 'users' },
     eventID: Number,
     isHidden: Boolean,
     isCanceled: Boolean,

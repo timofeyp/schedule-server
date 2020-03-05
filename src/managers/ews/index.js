@@ -2,8 +2,8 @@ const EWS = require('node-ews');
 const log = require('src/utils/log')(module);
 const crypt = require('src/utils/crypt');
 const config = require('config');
+const { User } = require('src/db');
 const moment = require('moment');
-moment.locale();
 const {
   EWS: { host },
 } = config;
@@ -12,16 +12,10 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const ewsFunction = 'CreateItem';
 
-const getEwsArgs = req => {
-  const {
-    dateTimeStart,
-    dateTimeEnd,
-    localRoom,
-    eventName,
-    ldapUsers,
-  } = req.body;
-  const { name: userFullName } = req.user;
-  const RequiredAttendees = ldapUsers.map(EmailAddress => ({
+const getEwsArgs = (event, user) => {
+  const { dateTimeStart, dateTimeEnd, localRoom, eventName, ldapParts } = event;
+  const { name: userFullName } = user;
+  const RequiredAttendees = ldapParts.map(EmailAddress => ({
     Attendee: {
       Mailbox: {
         EmailAddress,
@@ -52,8 +46,8 @@ const getEwsArgs = req => {
         },
         ReminderIsSet: true,
         ReminderMinutesBeforeStart: 60,
-        Start: dateTimeStart,
-        End: dateTimeEnd,
+        Start: moment(dateTimeStart).toISOString(),
+        End: moment(dateTimeEnd).toISOString(),
         IsAllDayEvent: false,
         LegacyFreeBusyStatus: 'Busy',
         Location,
@@ -78,8 +72,7 @@ const ewsSoapHeader = {
   },
 };
 
-const getConfig = user => {
-  const { ntHashedPassword, lmHashedPassword, mail } = user;
+const getConfig = ({ ntHashedPassword, lmHashedPassword, mail }) => {
   const hashedPass = crypt.decryptPass(ntHashedPassword, lmHashedPassword);
   return {
     username: mail,
@@ -88,16 +81,17 @@ const getConfig = user => {
   };
 };
 
-module.exports = async req => {
+module.exports = async event => {
   const options = {
     strictSSL: false,
   };
-  const ewsConfig = getConfig(req.user);
+  const eventOwner = await User.findOne({ _id: event.ownerUserId });
+  const ewsConfig = getConfig(eventOwner);
   const EWSSession = new EWS(ewsConfig, options);
   try {
-    const ewsArgs = getEwsArgs(req);
+    const ewsArgs = getEwsArgs(event, eventOwner);
     const result = await EWSSession.run(ewsFunction, ewsArgs, ewsSoapHeader);
-    log.info(result);
+    log.info({ result, userMail: eventOwner.mail });
   } catch (e) {
     log.error(e);
   }

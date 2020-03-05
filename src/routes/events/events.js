@@ -1,4 +1,5 @@
-const { EventsData, EventsNames } = require('src/db');
+const { EventsData } = require('src/db');
+const updateEventNames = require('src/managers/events/update-events-names');
 const { localConfirmEvent } = require('src/routes/events/events-confirmations');
 const { getEventData } = require('src/routes/events/events-data');
 const createEwsEvents = require('src/managers/ews');
@@ -24,27 +25,28 @@ const updateEvent = async (req, res) => {
 };
 
 const createEvent = async (req, res) => {
+  const { isAdmin, _id: ownerUserId } = req.user;
+  const { eventName } = req.body;
   const event = await EventsData.create({
     ...req.body,
     isUpdated: true,
     isManualCreated: true,
-    isPendingForAccept: !req.user.isAdmin,
+    ownerUserId,
+    isPendingForAccept: !isAdmin,
   });
-  if (req.body && req.body.ldapUsers) {
-    await createEwsEvents(req);
+  req.params = { id: event._id };
+  const [result] = await EventsData.aggregate(
+    EventsData.getEventDataQuery(req),
+  );
+  const isEws = req.body.ldapParts && isAdmin;
+  if (isEws) {
+    await createEwsEvents(event);
   }
-  if (req.user && !req.user.isAdmin) {
-    req.params = { id: event._id };
+  if (!isAdmin) {
     await localConfirmEvent(req);
   }
-  const { eventName: name } = req.body;
-  const pattern = name.replace(/[^A-zА-я0-9\s]/gim, '\\W');
-  await EventsNames.findOneAndUpdate(
-    { name: { $regex: new RegExp(pattern, 'i') } },
-    { name },
-    { upsert: true },
-  );
-  res.json(event);
+  await updateEventNames(eventName);
+  res.json(result);
 };
 
 module.exports = {

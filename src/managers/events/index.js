@@ -1,5 +1,6 @@
 const queryString = require('query-string');
-const { Events, EventsData, EventsNames } = require('src/db');
+const { Events, EventsData } = require('src/db');
+const updateEventNames = require('src/managers/events/update-events-names');
 const Moment = require('moment');
 const currentDay = i => Moment().add(i, 'day');
 const {
@@ -108,12 +109,7 @@ const eventsDataManager = {
     }
   },
   async prepareEventItem(data, eventID) {
-    const pattern = data.event_name.replace(/[^A-zА-я0-9]/gim, '\\W');
-    await EventsNames.findOneAndUpdate(
-      { name: { $regex: new RegExp(pattern, 'i') } },
-      { name: data.event_name },
-      { upsert: true },
-    );
+    await updateEventNames(data.event_name);
     const room = data.rooms
       ? data.rooms.filter(el => el.id === data.selected_room)
       : [];

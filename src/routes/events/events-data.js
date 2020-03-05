@@ -1,5 +1,6 @@
 const { EventsNames, EventsData } = require('src/db');
 const { ObjectId } = require('mongodb');
+const createEwsEvents = require('src/managers/ews');
 
 const getEventData = async (req, res) => {
   const event = req.isAuthenticated()
@@ -27,8 +28,12 @@ const localAcceptEvent = async (req, res) => {
       isPendingForAccept: false,
     },
   );
-  const event = await EventsData.aggregate(EventsData.getEventDataQuery(req));
-  return res.json(event[0]);
+  const [event] = await EventsData.aggregate(EventsData.getEventDataQuery(req));
+  const { ldapParts } = event;
+  if (ldapParts) {
+    await createEwsEvents(event);
+  }
+  return res.send(event);
 };
 
 module.exports = {
