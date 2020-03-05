@@ -8,43 +8,46 @@ module.exports = () => [
   },
   {
     $project: {
-      VCParts: 1,
+      VCPartsIDs: 1,
     },
   },
   {
     $unwind: {
-      path: '$VCParts',
-      preserveNullAndEmptyArrays: false,
-    },
-  },
-  {
-    $unwind: {
-      path: '$VCParts.VCParts',
+      path: '$VCPartsIDs',
     },
   },
   {
     $group: {
-      _id: '$VCParts.groupName',
-      group_name: {
-        $first: '$VCParts.groupName',
-      },
-      vc_parts: {
-        $addToSet: {
-          value: '$VCParts.VCParts.id',
-          label: '$VCParts.VCParts.name',
-        },
-      },
+      _id: '$VCPartsIDs',
     },
   },
   {
-    $unwind: {
-      path: '$vc_parts',
+    $addFields: {
+      VCPartsID: '$_id',
+    },
+  },
+  {
+    $lookup: {
+      from: 'v-c-parts',
+      localField: 'VCPartsID',
+      foreignField: 'id',
+      as: 'object',
     },
   },
   {
     $project: {
-      value: '$vc_parts.value',
-      label: '$vc_parts.label',
+      object: 1,
+    },
+  },
+  {
+    $unwind: {
+      path: '$object',
+    },
+  },
+  {
+    $project: {
+      label: '$object.name',
+      value: '$object.id',
     },
   },
   {
