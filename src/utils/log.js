@@ -10,7 +10,6 @@ const getLogger = module => {
     .join('/');
   return winston.createLogger({
     format: format.combine(
-      format.errors({ stack: true }),
       format.timestamp({
         format: () => moment().format('YYYY-MM-DD HH:mm:ss'),
       }),
