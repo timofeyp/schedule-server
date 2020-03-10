@@ -1,9 +1,9 @@
-const { dateWeek } = require('src/db/models/events-data/constants');
+const { getDateWeek } = require('src/db/models/events-data/constants');
 
 module.exports = () => [
   {
     $match: {
-      dateStart: dateWeek,
+      dateStart: getDateWeek(),
     },
   },
   {

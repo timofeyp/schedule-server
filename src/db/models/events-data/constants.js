@@ -13,15 +13,15 @@ const getEndingToday = () =>
     .second(59)
     .millisecond(999);
 
-const unixWeek = {
+const getUnixWeek = () => ({
   $gte: getBeginningToday().unix() * 1000,
   $lte:
     getEndingToday()
       .add(6, 'day')
       .unix() * 1000,
-};
+});
 
-const dateWeek = {
+const getDateWeek = () => ({
   $gte: getBeginningToday()
     .utcOffset(3)
     .toDate(),
@@ -29,9 +29,9 @@ const dateWeek = {
     .add(6, 'day')
     .utcOffset(3)
     .toDate(),
-};
+});
 
 module.exports = {
-  unixWeek,
-  dateWeek,
+  getUnixWeek,
+  getDateWeek,
 };
