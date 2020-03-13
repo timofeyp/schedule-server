@@ -2,9 +2,11 @@ const fs = require('fs');
 
 const prettierOptions = JSON.parse(fs.readFileSync('./.prettierrc', 'utf8'));
 
+let errorConfig = ['error', {}]
+
 module.exports = {
   parser: 'babel-eslint',
-  extends: ['airbnb', 'prettier'],
+  extends: ['prettier'],
   plugins: ['prettier'],
   env: {
     browser: true,
@@ -56,5 +58,7 @@ module.exports = {
     'no-use-before-define': 0,
     'prefer-template': 2,
     'require-yield': 0,
+    camelcase: errorConfig,
+    'default-case': errorConfig
   },
 };

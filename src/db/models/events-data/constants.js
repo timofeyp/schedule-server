@@ -2,12 +2,14 @@ const moment = require('moment');
 
 const getBeginningToday = () =>
   moment()
+    .utcOffset(3)
     .hour(0)
     .minute(0)
     .second(0)
     .millisecond(0);
 const getEndingToday = () =>
   moment()
+    .utcOffset(3)
     .hour(23)
     .minute(59)
     .second(59)
