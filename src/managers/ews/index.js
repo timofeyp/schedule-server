@@ -15,11 +15,9 @@ const ewsFunction = 'CreateItem';
 const getEwsArgs = (event, user) => {
   const { dateTimeStart, dateTimeEnd, localRoom, eventName, ldapParts } = event;
   const { name: userFullName } = user;
-  const RequiredAttendees = ldapParts.map(EmailAddress => ({
-    Attendee: {
-      Mailbox: {
-        EmailAddress,
-      },
+  const MailBoxes = ldapParts.map(EmailAddress => ({
+    Mailbox: {
+      EmailAddress,
     },
   }));
   const Location = localRoom || 'не указана';
@@ -51,7 +49,9 @@ const getEwsArgs = (event, user) => {
         IsAllDayEvent: false,
         LegacyFreeBusyStatus: 'Busy',
         Location,
-        RequiredAttendees,
+        RequiredAttendees: {
+          Attendee: MailBoxes,
+        },
       },
     },
   };
