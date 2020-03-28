@@ -6,7 +6,7 @@ let errorConfig = ['error', {}]
 
 module.exports = {
   parser: 'babel-eslint',
-  extends: ['prettier'],
+  extends: ['airbnb', 'prettier'],
   plugins: ['prettier'],
   env: {
     browser: true,
@@ -59,6 +59,5 @@ module.exports = {
     'prefer-template': 2,
     'require-yield': 0,
     camelcase: errorConfig,
-    'default-case': errorConfig
   },
 };
