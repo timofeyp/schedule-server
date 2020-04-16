@@ -1,10 +1,6 @@
 const HttpStatus = require('http-status-codes');
 const { User } = require('src/db');
 
-/**
- * Данный мидлвер осуществляет проверку аутентификации пользователя.
- */
-
 const checkAdmin = async (req, res, next) => {
   const user = User.findOne({ user: req.user });
   if (!user.isAdmin || req.user === 'asp-pts') {

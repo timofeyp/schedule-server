@@ -12,7 +12,7 @@
     }
   },
   "database": {
-    "uri": "mongodb://10.10.229.243:27017/schedule",
+    "uri": "mongodb://localhost:27017/schedule",
     "options": {
       "keepAlive": 1,
       "useNewUrlParser": true,
@@ -40,7 +40,7 @@
     "secret": "K3kJM4rjt-8FK3kJM4-ZQv5zMAKG"
   },
   "sap": {
-    "url": "http://a:a@saprap.co.rosenergoatom.ru"
+    "address": "saprap.co.rosenergoatom.ru"
   },
   "EWS": {
     "host": "https://10.3.6.11"
