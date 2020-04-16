@@ -1,6 +1,6 @@
 const { EventsData } = require('src/db');
 const { isEmpty } = require('lodash');
-const updateEventNames = require('src/managers/events/update-events-names');
+const updateEventNames = require('src/managers/events/utils/update-events-names');
 const { localConfirmEvent } = require('src/routes/events/events-confirmations');
 const { getEventData } = require('src/routes/events/events-data');
 const createEwsEvents = require('src/managers/ews');

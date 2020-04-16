@@ -1,20 +1,20 @@
-const config = require('config');
-const eventsUrl = `${config.get(
-  'sap.url',
-)}/irj/servlet/prt/portal/prtroot/pcd!3aportal_content!2frea!2fca!2fservices_ca!2ffRooms_booking!2frooms_request!2frequests!2ffRoom_requests!2fpScheduler!2fru.rea.i_day_rooms_requests`;
+const {
+  sap: { address },
+} = require('config');
+const eventsUrl = `http://${address}/irj/servlet/prt/portal/prtroot/pcd!3aportal_content!2frea!2fca!2fservices_ca!2ffRooms_booking!2frooms_request!2frequests!2ffRoom_requests!2fpScheduler!2fru.rea.i_day_rooms_requests`;
 const eventUrl = eventId =>
-  `${config.get(
-    'sap.url',
-  )}/irj/servlet/prt/portal/prtroot/rea.ru~request~rooms~portal.RoomRequest?event_id=${eventId}`;
-const portalUrl = `${config.get('sap.url')}/irj/portal`;
+  `http://${address}/irj/servlet/prt/portal/prtroot/rea.ru~request~rooms~portal.RoomRequest?event_id=${eventId}`;
+const portalUrl = `http://a:a@${address}/irj/portal`;
 const todayEventsRequestPeriod = 5 * 60 * 1000;
 const weekEventsRequestPeriod = 21 * 60 * 1000;
 const setCookiesPeriod = 24 * 60 * 60 * 1000;
 const storeVCPartsPeriod = 24 * 60 * 60 * 1000;
 const requestEventsDataPause = 20 * 60 * 1000;
 const hideDoublesPeriod = 20 * 60 * 1000;
-const increaseDaysArray = [...Array(7).keys()];
-increaseDaysArray.shift();
+const daysExceptToday = [...Array(7).keys()];
+daysExceptToday.shift();
+const Moment = require('moment');
+const currentDay = i => Moment().add(i, 'day');
 const requestHeaders = {
   'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
   accept: 'text/plain, */*; q=0.01',
@@ -34,9 +34,10 @@ module.exports = {
   todayEventsRequestPeriod,
   weekEventsRequestPeriod,
   setCookiesPeriod,
-  increaseDaysArray,
+  daysExceptToday,
   requestHeaders,
   requestEventsDataPause,
   hideDoublesPeriod,
   storeVCPartsPeriod,
+  currentDay,
 };
