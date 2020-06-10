@@ -41,9 +41,6 @@
     "request": "^2.88.0",
     "request-promise": "^4.2.5",
     "requestify": "^0.2.5",
-    "selenium-webdriver": "^4.0.0-alpha.1",
-    "sip": "0.0.6",
-    "sip.js": "^0.15.6",
     "tough-cookie": "^3.0.1",
     "util": "^0.12.1",
     "winston": "^3.0.0"

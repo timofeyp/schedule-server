@@ -11,19 +11,19 @@ const getDateTime = require('src/managers/events/utils/get-date-time');
 
 class DataManager {
   constructor() {
-    this.pausedEvents = {};
+    this.extraCallProtection = {};
   }
 
   resetEventsPause(day) {
-    delete this.pausedEvents[day];
+    delete this.extraCallProtection[day];
   }
 
   async requestEventsData(events, day) {
     const query = queryString.stringify({
       action: 'initStartParams',
     });
-    if (!this.pausedEvents[day]) {
-      this.pausedEvents[day] = true;
+    if (!this.extraCallProtection[day]) {
+      this.extraCallProtection[day] = true;
       for (const event of events) {
         const { event_id: eventID } = event;
         const data = await requestData(eventUrl(eventID), query);
