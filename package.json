@@ -26,7 +26,7 @@
     "jssip": "^3.3.11",
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
-    "mongoose": "^5.2.7",
+    "mongoose": "^5.7.5",
     "morgan": "~1.9.0",
     "node-ews": "^3.4.2",
     "node-fetch": "^2.6.0",
