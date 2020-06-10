@@ -23,7 +23,7 @@ const requestHeaders = {
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.90 Safari/537.36',
 };
 const portalLogin = 'asp-pts@ln.rosenergoatom.ru';
-const portalPass = 'defender';
+const portalPass = '961Oo9LB';
 
 module.exports = {
   eventsUrl,
